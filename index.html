@@ -1373,4 +1373,215 @@ if(/^#t/.test(location.hash))[0,60,300].forEach(t=>setTimeout(()=>{try{scrollTo(
 
 </script>
 
+<script>
+/* ===== ภารกิจนักสืบข้อมูล (CER Lab) — 3 มิติ + CER ===== */
+(function(){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const css=document.createElement('style');css.textContent=`
+.cerhome{margin:18px 0;padding:22px;border-radius:22px;background:linear-gradient(135deg,var(--sheet),var(--solid));border:1px solid var(--line);box-shadow:var(--shadow);display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+.cerhome .ic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--blue),var(--red));color:#fff;font-size:30px}
+.cerhome h2{margin:0;font-family:var(--display);font-size:21px}.cerhome p{margin:4px 0 0;color:var(--soft)}
+.cerhome small{display:inline-block;font-weight:700;color:var(--red);letter-spacing:.3px}
+@media(max-width:640px){.cerhome{grid-template-columns:1fr;text-align:left}.cerhome .ic{width:52px;height:52px;font-size:24px}}
+#cer .cerin{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+#cer .cbox{border-radius:16px;padding:14px;border:1px solid var(--line);background:var(--solid)}
+#cer .cbox b{font-family:var(--display);font-size:17px}#cer .cbox p{margin:6px 0 0;color:var(--soft);font-size:15px}
+#cer .cC{border-top:5px solid #e0558f}#cer .cE{border-top:5px solid #2f7de1}#cer .cR{border-top:5px solid #17a673}
+@media(max-width:700px){#cer .cerin{grid-template-columns:1fr}}
+#cer .mtabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+#cer .mtabs button{border:1px solid var(--line);background:var(--solid);color:var(--ink);border-radius:999px;padding:8px 14px;font:inherit;cursor:pointer}
+#cer .mtabs button[aria-pressed="true"]{background:var(--blue);color:#fff;border-color:transparent}
+#cer .mtabs button .ok{margin-left:4px}
+#cer textarea,#cer .cty{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:6px 0}#cer .cty label{display:inline-flex;gap:4px;align-items:center}#cer .cty button{font:inherit;border:1px solid var(--line);background:var(--solid);color:var(--ink);border-radius:10px;padding:6px 12px;cursor:pointer}
+#cer .cin{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--solid);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+#cer textarea{min-height:84px;resize:vertical}
+#cer label.cfl{display:block;margin:12px 0 4px;font-weight:700}
+#cer label.cfl i{font-style:normal;font-weight:400;color:var(--soft);font-size:14px;display:block}
+#cer .tag{display:inline-block;border-radius:8px;padding:1px 8px;color:#fff;font-size:13px;margin-right:6px;vertical-align:1px}
+#cer .tC{background:#e0558f}#cer .tE{background:#2f7de1}#cer .tR{background:#17a673}
+#cer table.dt{border-collapse:collapse;width:100%;margin:8px 0}#cer table.dt th,#cer table.dt td{border:1px solid var(--line);padding:6px 8px;text-align:center}
+#cer table.dt input{width:100%;box-sizing:border-box;border:0;background:transparent;color:var(--ink);font:inherit;text-align:center}
+#cer .chart{width:100%;max-width:560px;margin:8px auto;display:block}
+#cer .rub{display:grid;grid-template-columns:120px repeat(4,1fr);gap:4px;font-size:13.5px;margin:8px 0}
+#cer .rub div{border:1px solid var(--line);border-radius:8px;padding:6px;background:var(--solid)}
+#cer .rub .h{font-weight:700;background:transparent;border:0}
+#cer .rub label{cursor:pointer;display:block}#cer .rub input{margin-right:4px}
+#cer .rub .sel{outline:2px solid var(--blue)}
+@media(max-width:700px){#cer .rub{grid-template-columns:1fr}#cer .rub .h:not(.rn){display:none}}
+#cer .stp{display:flex;gap:10px;align-items:baseline;margin-top:18px}#cer .stp span{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#fff;font-weight:700}
+#cer .stp h3{margin:0;font-family:var(--display)}
+#cer .given{border-radius:14px;background:var(--paper);padding:12px;border:1px dashed var(--line)}
+#cer .model{border-left:4px solid var(--ok);padding:8px 12px;background:var(--okbg);border-radius:8px;margin-top:10px}
+#cer .tw{overflow:auto}#cer .tw table{border-collapse:collapse;width:100%;font-size:14px}#cer .tw th,#cer .tw td{border:1px solid var(--line);padding:6px;vertical-align:top;text-align:left}
+#cer .tw select{font:inherit}
+#cer .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
+#cer .kpi div{border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--solid)}#cer .kpi b{display:block;font-size:24px;font-family:var(--display)}
+`;document.head.appendChild(css);
+
+/* ---------- ภารกิจ ---------- */
+const RUB={
+ C:['ไม่มีข้อกล่าวอ้าง หรือไม่สอดคล้องกับข้อมูล','ตอบตรงคำถามบางส่วน แต่ไม่ชัดเจน','ตอบตรงคำถาม แต่ยังกว้าง/ขาดรายละเอียด','ตอบตรงคำถาม ชัดเจน และสอดคล้องกับข้อมูล'],
+ E:['ไม่มีหลักฐาน หรือหลักฐานไม่เกี่ยวข้อง','กล่าวถึงข้อมูลกว้าง ๆ ไม่มีตัวเลข','ใช้ข้อมูลที่เกี่ยวข้องพร้อมตัวเลข 1 จุด','ใช้ข้อมูลตัวเลขที่เกี่ยวข้องเพียงพอ ตั้งแต่ 2 จุดขึ้นไป'],
+ R:['ไม่มีเหตุผล','ทวนหลักฐานซ้ำ ไม่ได้อธิบายว่าเชื่อมกันอย่างไร','มีเหตุผล แต่ไม่ได้ใช้หลักคณิตศาสตร์','อธิบายด้วยหลักคณิตศาสตร์ (เปรียบเทียบ อัตราส่วน ร้อยละ แนวโน้ม) ว่าทำไมหลักฐานสนับสนุนข้อกล่าวอ้าง']};
+const NM={C:'ข้อกล่าวอ้าง (Claim)',E:'หลักฐาน (Evidence)',R:'เหตุผล (Reasoning)'};
+const M={
+ pre:{t:'CER ก่อนเรียน',sub:'ทำก่อนเริ่มหน่วยที่ 4 สถิติ ไม่ต้องกังวลเรื่องถูกผิด ครูอยากเห็นวิธีคิดของเรา',
+  q:'ควรวางถังขยะรีไซเคิลเพิ่มที่หน้าโรงอาหารในวันไหนของสัปดาห์',
+  data:{title:'จำนวนขวดพลาสติกในถังขยะหน้าโรงอาหาร (สัปดาห์หนึ่ง)',unit:'ขวด',type:'bar',rows:[['จันทร์',42],['อังคาร',38],['พุธ',61],['พฤหัสบดี',40],['ศุกร์',35]]},self:false},
+ warm:{t:'อุ่นเครื่อง: ซื้อแบบไหนคุ้มกว่า',sub:'ฝึกเขียน CER ด้วยเรื่องอัตราส่วน (หน่วยที่ 1)',
+  q:'ขนมยี่ห้อเดียวกัน แบบไหนคุ้มค่ากว่ากัน',
+  data:{title:'ราคาขนมที่ร้านค้าหน้าโรงเรียน',unit:'',type:'table',head:['แบบ','จำนวนชิ้น','ราคา (บาท)'],rows:[['ถุงเล็ก','6 ชิ้น','54'],['ถุงใหญ่','10 ชิ้น','85']]},
+  model:{C:'ซื้อถุงใหญ่คุ้มค่ากว่า',E:'ถุงเล็ก 6 ชิ้น 54 บาท ตกชิ้นละ 54 ÷ 6 = 9 บาท ส่วนถุงใหญ่ 10 ชิ้น 85 บาท ตกชิ้นละ 85 ÷ 10 = 8.50 บาท',R:'เมื่อเปรียบเทียบราคาต่อหนึ่งชิ้น (อัตราส่วนราคาต่อจำนวนชิ้น) ถุงใหญ่ถูกกว่าชิ้นละ 0.50 บาท จึงได้ขนมมากกว่าในเงินเท่ากัน แต่ถ้ากินไม่หมด ถุงเล็กอาจเหมาะกว่า'},self:true},
+ lab:{t:'ภารกิจหลัก: นักสืบข้อมูลรอบโรงเรียน',sub:'งานกลุ่มในหน่วยที่ 4 ตั้งคำถามจากสิ่งที่เห็น เก็บข้อมูลจริง แล้วใช้ข้อมูลเป็นหลักฐาน',lab:true,self:true},
+ post:{t:'CER หลังเรียน',sub:'ทำหลังจบหน่วยที่ 4 สถิติ',
+  q:'อุณหภูมิของอากาศเกี่ยวข้องกับยอดขายน้ำดื่มของร้านสหกรณ์โรงเรียนหรือไม่ อย่างไร',
+  data:{title:'อุณหภูมิตอนเที่ยงและจำนวนน้ำดื่มที่ขายได้ (5 วัน)',unit:'ขวด',type:'line',rows:[['28 °C',45],['30 °C',52],['32 °C',66],['34 °C',74],['36 °C',88]]},self:false}};
+const ORDER=['pre','warm','lab','post'];
+const PHEN=[
+ ['ขยะในโรงเรียน','ขยะประเภทไหนพบมากที่สุดในถังขยะหน้าอาคารเรียน'],
+ ['การเดินทางมาโรงเรียน','นักเรียนห้องเราใช้เวลาเดินทางมาโรงเรียนกี่นาที และส่วนใหญ่มาด้วยวิธีใด'],
+ ['น้ำดื่ม','นักเรียนแต่ละคนดื่มน้ำวันละกี่แก้ว และเพียงพอตามคำแนะนำหรือไม่'],
+ ['อาหารกลางวัน','เมนูไหนเหลือทิ้งมากที่สุดในแต่ละวัน'],
+ ['เลือกเอง','สังเกตสิ่งที่สงสัยในโรงเรียนหรือชุมชนของเรา']];
+
+/* ---------- เก็บข้อมูล ---------- */
+const KEY='m1cer';let S={};try{S=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const ctx=()=>(window.M1DB?window.M1DB():{})||{};
+
+/* ---------- กราฟ SVG ---------- */
+const COL=['#2f7de1','#e0558f','#17a673','#f2a33a','#7c5ce0','#14a3b8','#d94f3d','#6b7a99'];
+function chart(rows,type,unit){rows=rows.filter(r=>r[0]!==''&&r[1]!==''&&!isNaN(+r[1]));if(!rows.length)return'<p class="lead">ใส่ข้อมูลในตารางแล้วกราฟจะขึ้นที่นี่</p>';
+ const W=560,H=300,P=44,mx=Math.max(...rows.map(r=>+r[1]))||1,n=rows.length;
+ if(type==='pie'){const tot=rows.reduce((a,r)=>a+ +r[1],0)||1;let a=-Math.PI/2,out='';rows.forEach((r,i)=>{const f=+r[1]/tot,b=a+f*2*Math.PI,x1=150+110*Math.cos(a),y1=150+110*Math.sin(a),x2=150+110*Math.cos(b),y2=150+110*Math.sin(b);
+   out+=f>=.9999?`<circle cx="150" cy="150" r="110" fill="${COL[i%8]}"/>`:`<path d="M150 150 L${x1} ${y1} A110 110 0 ${f>.5?1:0} 1 ${x2} ${y2} Z" fill="${COL[i%8]}" stroke="#fff" stroke-width="1.5"/>`;
+   out+=`<rect x="300" y="${40+i*24}" width="14" height="14" rx="3" fill="${COL[i%8]}"/><text x="320" y="${52+i*24}" font-size="14" fill="currentColor">${esc(r[0])} ${(f*100).toFixed(1)}%</text>`;a=b});
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="แผนภูมิรูปวงกลม">${out}</svg>`}
+ const sx=(W-P-10)/n,ys=v=>H-P-(v/mx)*(H-P-20);let g='';
+ for(let k=0;k<=4;k++){const v=mx*k/4,y=ys(v);g+=`<line x1="${P}" x2="${W-10}" y1="${y}" y2="${y}" stroke="currentColor" stroke-opacity=".12"/><text x="${P-6}" y="${y+4}" font-size="11" text-anchor="end" fill="currentColor" opacity=".7">${+v.toFixed(1)}</text>`}
+ let body='';
+ if(type==='line'){const pts=rows.map((r,i)=>[P+sx*(i+.5),ys(+r[1])]);body=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${COL[0]}" stroke-width="3"/>`+pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${COL[1]}"/><text x="${p[0]}" y="${p[1]-10}" font-size="12" text-anchor="middle" fill="currentColor">${rows[i][1]}</text>`).join('')}
+ else body=rows.map((r,i)=>{const x=P+sx*i+sx*.18,w=sx*.64,y=ys(+r[1]);return`<rect x="${x}" y="${y}" width="${w}" height="${H-P-y}" rx="5" fill="${COL[i%8]}"/><text x="${x+w/2}" y="${y-6}" font-size="12" text-anchor="middle" fill="currentColor">${r[1]}</text>`}).join('');
+ const lab=rows.map((r,i)=>`<text x="${P+sx*(i+.5)}" y="${H-P+18}" font-size="12" text-anchor="middle" fill="currentColor">${esc(String(r[0]).slice(0,10))}</text>`).join('');
+ return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="กราฟข้อมูล">${g}<line x1="${P}" x2="${W-10}" y1="${H-P}" y2="${H-P}" stroke="currentColor" stroke-opacity=".5"/>${body}${lab}${unit?`<text x="${P}" y="12" font-size="12" fill="currentColor" opacity=".8">(${esc(unit)})</text>`:''}</svg>`}
+function given(d){if(d.type==='table')return`<div class="given"><b>${esc(d.title)}</b><table class="dt"><tr>${d.head.map(h=>`<th>${h}</th>`).join('')}</tr>${d.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+ return`<div class="given"><b>${esc(d.title)}</b>${chart(d.rows,d.type,d.unit)}<table class="dt"><tr>${d.rows.map(r=>`<th>${r[0]}</th>`).join('')}</tr><tr>${d.rows.map(r=>`<td>${r[1]}</td>`).join('')}</tr></table></div>`}
+function rubricRows(sel,disabled){return`<div class="rub"><div class="h"></div>${[1,2,3,4].map(l=>`<div class="h">ระดับ ${l}</div>`).join('')}`+
+ ['C','E','R'].map(k=>`<div class="h rn"><span class="tag t${k}">${k}</span>${NM[k].split(' ')[0]}</div>`+[1,2,3,4].map(l=>`<div class="${sel&&sel[k]==l?'sel':''}"><label><input type="radio" name="rb${k}" value="${l}" ${sel&&sel[k]==l?'checked':''} ${disabled?'disabled':''}>${RUB[k][l-1]}</label></div>`).join('')).join('')+`</div>`}
+
+/* ---------- หน้า ---------- */
+const main=document.createElement('main');main.id='cer';main.hidden=true;document.querySelector('.wrap').insertBefore(main,$('pn'));
+const card=document.createElement('section');card.className='cerhome';card.innerHTML=`<div class="ic" aria-hidden="true">🔍</div><div><small>ภารกิจพิเศษ · ภาคเรียนที่ 2</small><h2>นักสืบข้อมูล: ใช้ข้อมูลจริงเป็นหลักฐาน</h2><p>ตั้งคำถามจากสิ่งรอบโรงเรียน เก็บข้อมูล แล้วเขียนคำอธิบายแบบ CER ข้อกล่าวอ้าง · หลักฐาน · เหตุผล</p></div><button type="button" class="go" id="cerGo">เริ่มภารกิจ →</button>`;
+const hero=document.querySelector('#home .hero');hero.after(card);
+let cur='pre';
+function open(m){if(m)cur=m;['home','quiz'].forEach(x=>$(x)&&($(x).hidden=true));document.querySelectorAll('main[id^="t"]').forEach(x=>x.hidden=true);
+ $('bar').hidden=false;$('pn').hidden=true;$('bc').textContent='ภารกิจพิเศษ · นักสืบข้อมูล';$('sib').innerHTML='';main.hidden=false;render();try{history.replaceState(null,'','#cer');scrollTo(0,0)}catch(e){}}
+$('cerGo').onclick=()=>open();
+const gh=$('goHome').onclick;$('goHome').onclick=()=>{main.hidden=true;gh()};
+document.querySelectorAll('[id^="tab"]').forEach(b=>b.addEventListener('click',()=>{main.hidden=true}));
+
+function render(){const c=ctx(),me=window.M1USER;
+ main.innerHTML=`<p class="ttl">นักสืบข้อมูล 🔍</p>
+ <section><h2>นักสืบคณิตศาสตร์อธิบายอย่างไร</h2><p class="lead">นักสืบไม่ได้ตอบด้วยความรู้สึก แต่ตอบด้วยหลักฐาน ทุกคำอธิบายของเรามี 3 ส่วน</p>
+ <div class="cerin"><div class="cbox cC"><b>C · ข้อกล่าวอ้าง</b><p>คำตอบของคำถามในหนึ่งประโยค</p></div><div class="cbox cE"><b>E · หลักฐาน</b><p>ข้อมูลหรือตัวเลขที่สนับสนุนคำตอบ</p></div><div class="cbox cR"><b>R · เหตุผล</b><p>หลักคณิตศาสตร์ที่อธิบายว่าทำไมหลักฐานนี้ทำให้คำตอบเป็นจริง</p></div></div>
+ <p class="lead">${me?`บันทึกงานในชื่อ <b>${esc(me.name)}</b> ครูจะเห็นงานที่ส่ง`:'ยังไม่ได้เข้าสู่ระบบ งานจะเก็บไว้ในเครื่องนี้เท่านั้น ถ้าจะส่งครู ให้เข้าสู่ระบบที่หน้าหลักก่อน'}</p>
+ <div class="mtabs" role="group" aria-label="เลือกภารกิจ">${ORDER.map((k,i)=>`<button type="button" data-m="${k}" aria-pressed="${k===cur}">${i+1}. ${M[k].t}${S[k]&&S[k].sent?' <span class="ok">✓</span>':''}</button>`).join('')}${c.ISTEACHER?`<button type="button" data-m="teacher" aria-pressed="${cur==='teacher'}">📊 สำหรับครู</button>`:''}</div></section>
+ <div id="cerBody"></div>`;
+ main.querySelectorAll('.mtabs button').forEach(b=>b.onclick=()=>{cur=b.dataset.m;render()});
+ if(cur==='teacher')return teacher();
+ task(cur)}
+
+function task(k){const m=M[k],st=S[k]=S[k]||{},B=$('cerBody');
+ let h=`<section><h2>${m.t}</h2><p class="lead">${m.sub}</p>`;
+ if(m.lab){st.rows=st.rows||[['',''],['',''],['',''],['','']];st.type=st.type||'bar';
+  h+=`<div class="stp"><span>1</span><h3>สังเกตปรากฏการณ์</h3></div><p class="lead">เลือกเรื่องที่กลุ่มสนใจ แล้วจดว่าเห็นอะไร สงสัยอะไร</p>
+  <div class="mtabs">${PHEN.map((p,i)=>`<button type="button" data-p="${i}" aria-pressed="${st.ph==i}">${p[0]}</button>`).join('')}</div>
+  <p class="lead" id="phHint">${st.ph!=null?'ตัวอย่างคำถาม: '+PHEN[st.ph][1]:''}</p>
+  <label class="cfl" for="cObs">สิ่งที่สังเกตเห็น และสิ่งที่สงสัย</label><textarea id="cObs">${esc(st.obs)}</textarea>
+  <label class="cfl" for="cPred">ก่อนเก็บข้อมูล เราคาดว่าคำตอบจะเป็นอย่างไร <i>(เดาได้ เดี๋ยวค่อยเทียบกับหลักฐาน)</i></label><textarea id="cPred">${esc(st.pred)}</textarea>
+  <div class="stp"><span>2</span><h3>ตั้งคำถามทางสถิติ</h3></div>
+  <label class="cfl" for="cQ">คำถามของกลุ่ม <i>คำถามทางสถิติต้องตอบด้วยการเก็บข้อมูล และคำตอบของแต่ละคน/แต่ละวันแตกต่างกันได้</i></label><input id="cQ" class="cin" value="${esc(st.q)}">
+  <p class="lead" id="cQfb"></p>
+  <div class="stp"><span>3</span><h3>เก็บและนำเสนอข้อมูล</h3></div>
+  <label class="cfl" for="cHow">เก็บข้อมูลอย่างไร จากใคร กี่ครั้ง</label><textarea id="cHow">${esc(st.how)}</textarea>
+  <label class="cfl" for="cUnit">หน่วยของข้อมูล <i>เช่น คน ชิ้น นาที แก้ว</i></label><input id="cUnit" class="cin" value="${esc(st.unit)}" style="max-width:220px">
+  <table class="dt" id="cTab"><tr><th>รายการ / กลุ่ม / วัน</th><th>จำนวน</th><th></th></tr>${st.rows.map((r,i)=>`<tr><td><input data-r="${i}" data-c="0" value="${esc(r[0])}"></td><td><input data-r="${i}" data-c="1" inputmode="decimal" value="${esc(r[1])}"></td><td><button type="button" data-del="${i}" aria-label="ลบแถว">✕</button></td></tr>`).join('')}</table>
+  <div class="cty"><button type="button" id="cAdd">+ เพิ่มแถว</button>
+  <span>แสดงเป็น</span>${[['bar','แผนภูมิแท่ง'],['line','กราฟเส้น'],['pie','แผนภูมิรูปวงกลม']].map(([v,t])=>`<label><input type="radio" name="cTy" value="${v}" ${st.type===v?'checked':''}> ${t}</label>`).join(' ')}</div>
+  <div id="cChart"></div>
+  <label class="cfl" for="cWhy">ทำไมเลือกแผนภูมิแบบนี้</label><textarea id="cWhy" style="min-height:60px">${esc(st.why)}</textarea>
+  <div class="stp"><span>4</span><h3>สร้างคำอธิบาย CER</h3></div>`}
+ else{h+=`<div class="stp"><span>?</span><h3>${esc(m.q)}</h3></div>${given(m.data)}`}
+ h+=`<label class="cfl" for="cC"><span class="tag tC">C</span>ข้อกล่าวอ้าง <i>ตอบคำถามในหนึ่งประโยค เช่น "…ควรเป็น … เพราะ…" ยังไม่ต้องใส่ตัวเลข</i></label><textarea id="cC">${esc(st.C)}</textarea>
+ <label class="cfl" for="cE"><span class="tag tE">E</span>หลักฐาน <i>ข้อมูลหรือตัวเลขจากตาราง/กราฟที่สนับสนุน อย่างน้อย 2 จุด</i></label><textarea id="cE">${esc(st.E)}</textarea>
+ <label class="cfl" for="cR"><span class="tag tR">R</span>เหตุผล <i>หลักคณิตศาสตร์ที่เชื่อมหลักฐานกับข้อกล่าวอ้าง เช่น การเปรียบเทียบ อัตราส่วน ร้อยละ แนวโน้ม</i></label><textarea id="cR">${esc(st.R)}</textarea>`;
+ if(m.lab)h+=`<div class="stp"><span>5</span><h3>สะท้อนคิด</h3></div><label class="cfl" for="cRef">ก่อนเห็นหลักฐาน เราคิดว่า… หลังเห็นหลักฐาน เราคิดว่า… อะไรทำให้เปลี่ยน/ไม่เปลี่ยน</label><textarea id="cRef">${esc(st.ref)}</textarea>`;
+ if(m.self)h+=`<h3 style="margin-top:18px">ประเมินตัวเอง</h3><p class="lead">เลือกระดับที่ตรงกับคำอธิบายของเราที่สุด</p>${rubricRows(st.self)}`;
+ h+=`<div class="ans"><button type="button" class="go" id="cSend">${window.M1USER?'ส่งงานให้ครู':'บันทึกไว้ในเครื่อง'}</button><span class="score" id="cMsg">${st.sent?'ส่งแล้ว แก้ไขแล้วส่งใหม่ได้':''}</span></div>
+ <div id="cModel"></div></section>`;
+ if(st.tscore&&(st.tscore.C||st.tscore.E||st.tscore.R))h+=`<section><h3>คะแนนจากครู</h3>${rubricRows(st.tscore,true)}${st.tnote?`<p class="lead">ครูบอกว่า: ${esc(st.tnote)}</p>`:''}</section>`;
+ B.innerHTML=h;
+ const bind=(id,f)=>{const e=$(id);if(e)e.oninput=()=>{st[f]=e.value;saveLocal()}};
+ [['cObs','obs'],['cPred','pred'],['cQ','q'],['cHow','how'],['cUnit','unit'],['cWhy','why'],['cC','C'],['cE','E'],['cR','R'],['cRef','ref']].forEach(a=>bind(...a));
+ B.querySelectorAll('.rub input').forEach(r=>r.onchange=()=>{st.self=st.self||{};st.self[r.name.slice(2)]=+r.value;saveLocal();B.querySelectorAll(`input[name="${r.name}"]`).forEach(x=>x.closest('div').classList.toggle('sel',x.checked))});
+ if(m.lab){
+  B.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{st.ph=+b.dataset.p;saveLocal();B.querySelectorAll('[data-p]').forEach(x=>x.setAttribute('aria-pressed',x===b));$('phHint').textContent='ตัวอย่างคำถาม: '+PHEN[st.ph][1]});
+  const qfb=()=>{const q=($('cQ').value||'').trim();let t='';if(!q)t='';else if(!/[?]|ไหม|หรือไม่|อย่างไร|เท่าไร|เท่าใด|กี่|ใด|อะไร|ไหน/.test(q))t='ลองเขียนให้เป็นประโยคคำถาม';else if(/^(.*)(กี่โมง|ชื่ออะไร)/.test(q))t='คำถามนี้มีคำตอบเดียว ลองถามให้ต้องเก็บข้อมูลจากหลายคน/หลายวัน';else t='ตรวจเอง: คำถามนี้ต้องเก็บข้อมูลจากหลายคนหรือหลายครั้งไหม และคำตอบแต่ละครั้งต่างกันได้ไหม ถ้าใช่ทั้งคู่ เป็นคำถามทางสถิติ';$('cQfb').textContent=t};
+  $('cQ').addEventListener('input',qfb);qfb();
+  const draw=()=>{$('cChart').innerHTML=chart(st.rows,st.type,st.unit)};draw();
+  $('cTab').querySelectorAll('input').forEach(i=>i.oninput=()=>{st.rows[+i.dataset.r][+i.dataset.c]=i.value;saveLocal();draw()});
+  $('cTab').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{st.rows.splice(+b.dataset.del,1);if(!st.rows.length)st.rows.push(['','']);saveLocal();task(k)});
+  $('cAdd').onclick=()=>{st.rows.push(['','']);saveLocal();task(k)};
+  B.querySelectorAll('input[name="cTy"]').forEach(r=>r.onchange=()=>{st.type=r.value;saveLocal();draw()});
+  $('cUnit').addEventListener('input',draw)}
+ $('cSend').onclick=()=>send(k,st);
+ if(k==='warm'&&st.sent)showModel()}
+function showModel(){const m=M.warm.model;$('cModel').innerHTML=`<div class="model"><b>ตัวอย่างคำอธิบายที่ดี (เทียบกับของเรา)</b><p><span class="tag tC">C</span>${m.C}</p><p><span class="tag tE">E</span>${m.E}</p><p><span class="tag tR">R</span>${m.R}</p></div>`}
+
+async function send(k,st){const msg=$('cMsg');
+ if(!(st.C||'').trim()||!(st.E||'').trim()||!(st.R||'').trim()){msg.textContent='เขียนให้ครบทั้ง C, E และ R ก่อนนะ';return}
+ st.sent=true;saveLocal();
+ const c=ctx(),me=window.M1USER;
+ if(!c.DB||!c.U||!me){msg.textContent='บันทึกไว้ในเครื่องแล้ว (เข้าสู่ระบบเพื่อส่งครู)';if(k==='warm')showModel();return}
+ msg.textContent='กำลังส่ง…';
+ const doc={uid:c.U.uid,name:me.name,cls:me.cls,no:me.no??'',task:k,C:st.C,E:st.E,R:st.R,self:st.self||null,updated:c.DB.ts()};
+ if(M[k].lab)Object.assign(doc,{ph:st.ph??null,obs:st.obs||'',pred:st.pred||'',q:st.q||'',how:st.how||'',unit:st.unit||'',why:st.why||'',ref:st.ref||'',type:st.type,rows:JSON.stringify(st.rows)});
+ try{await c.DB.set('m1cer/'+c.U.uid+'_'+k,doc,true);msg.textContent='ส่งให้ครูแล้ว ✓';if(k==='warm')showModel();render()}catch(e){msg.textContent='ส่งไม่สำเร็จ ลองใหม่อีกครั้ง (งานยังเก็บไว้ในเครื่อง)'}}
+
+/* ดึงคะแนนครูกลับมาให้นักเรียนเห็น */
+async function pull(){const c=ctx();if(!c.DB||!c.U||!window.M1USER)return;
+ for(const k of ORDER){try{const d=await c.DB.get('m1cer/'+c.U.uid+'_'+k);if(d){S[k]=S[k]||{};['C','E','R','self','tscore','tnote','ph','obs','pred','q','how','unit','why','ref','type'].forEach(f=>{if(d[f]!=null&&(S[k][f]==null||f==='tscore'||f==='tnote'))S[k][f]=d[f]});if(d.rows&&!S[k].rows)try{S[k].rows=JSON.parse(d.rows)}catch(e){}S[k].sent=true}}catch(e){}}
+ saveLocal();if(!main.hidden)render()}
+window.addEventListener('m1login',pull);window.addEventListener('m1auth',()=>{if(!main.hidden)render()});
+
+/* ---------- หน้าครู ---------- */
+async function teacher(){const B=$('cerBody'),c=ctx();B.innerHTML='<section><p class="lead">กำลังโหลด…</p></section>';
+ let all=[];try{all=await c.DB.q('m1cer')}catch(e){B.innerHTML='<section><p class="fb no">โหลดไม่ได้ ตรวจสิทธิ์ Firestore ของคอลเลกชัน m1cer</p></section>';return}
+ const tot=d=>d.tscore?(+d.tscore.C||0)+(+d.tscore.E||0)+(+d.tscore.R||0):null;
+ const by=t=>all.filter(d=>d.task===t);
+ const stat=t=>{const a=by(t).map(tot).filter(x=>x!=null&&x>0);return{n:by(t).length,g:a.length,avg:a.length?(a.reduce((p,q)=>p+q,0)/a.length).toFixed(2):'–',good:a.length?Math.round(100*a.filter(x=>x>=9).length/a.length)+'%':'–'}};
+ const P=stat('pre'),Q=stat('post');
+ const pair=by('post').map(d=>{const p=all.find(x=>x.task==='pre'&&x.uid===d.uid);return p&&tot(p)&&tot(d)?tot(d)>tot(p):null}).filter(x=>x!=null);
+ let tsel='pre';
+ const draw=()=>{const rows=by(tsel).sort((a,b)=>String(a.cls).localeCompare(String(b.cls))||(+a.no||0)-(+b.no||0));
+  $('tTab').innerHTML=`<table><tr><th>ชื่อ</th><th>ชั้น</th><th>C · E · R</th><th>ประเมินตนเอง</th><th>คะแนนครู (1–4)</th></tr>${rows.map(d=>`<tr data-id="${d.id}"><td>${esc(d.name)}</td><td>${esc(d.cls)}</td><td>${d.q?`<b>คำถาม:</b> ${esc(d.q)}<br>`:''}<span class="tag tC">C</span>${esc(d.C)}<br><span class="tag tE">E</span>${esc(d.E)}<br><span class="tag tR">R</span>${esc(d.R)}${d.ref?`<br><b>สะท้อนคิด:</b> ${esc(d.ref)}`:''}</td><td>${d.self?`C${d.self.C||'-'} E${d.self.E||'-'} R${d.self.R||'-'}`:'-'}</td><td>${['C','E','R'].map(k=>`${k} <select data-k="${k}"><option value="">-</option>${[1,2,3,4].map(l=>`<option ${d.tscore&&d.tscore[k]==l?'selected':''}>${l}</option>`).join('')}</select>`).join(' ')}<br><input class="cin" data-note placeholder="ข้อเสนอแนะถึงนักเรียน" value="${esc(d.tnote)}"><button type="button" class="go" data-save>บันทึก</button> <span class="score"></span></td></tr>`).join('')}</table>`;
+  $('tTab').querySelectorAll('[data-save]').forEach(b=>b.onclick=async()=>{const tr=b.closest('tr'),id=tr.dataset.id,ts={};tr.querySelectorAll('select').forEach(s=>ts[s.dataset.k]=s.value?+s.value:null);const note=tr.querySelector('[data-note]').value;
+   try{await c.DB.update('m1cer/'+id,{tscore:ts,tnote:note});const d=all.find(x=>x.id===id);d.tscore=ts;d.tnote=note;tr.querySelector('.score').textContent='บันทึกแล้ว'}catch(e){tr.querySelector('.score').textContent='บันทึกไม่สำเร็จ'}})};
+ B.innerHTML=`<section><h2>สรุปสำหรับครู</h2><p class="lead">ระดับดีขึ้นไป = คะแนน CER รวมตั้งแต่ 9 จาก 12 (C+E+R ข้อละ 1–4) ใช้เป็นข้อมูลตัวชี้วัดของประเด็นท้าทาย</p>
+ <div class="kpi"><div>ส่ง CER ก่อนเรียน<b>${P.n}</b>ให้คะแนนแล้ว ${P.g}</div><div>เฉลี่ยก่อนเรียน<b>${P.avg}</b>ระดับดีขึ้นไป ${P.good}</div><div>ส่ง CER หลังเรียน<b>${Q.n}</b>ให้คะแนนแล้ว ${Q.g}</div><div>เฉลี่ยหลังเรียน<b>${Q.avg}</b>ระดับดีขึ้นไป ${Q.good}</div><div>หลังเรียนสูงกว่าก่อนเรียน<b>${pair.length?Math.round(100*pair.filter(Boolean).length/pair.length)+'%':'–'}</b>จาก ${pair.length} คนที่มีคะแนนครบ</div></div>
+ <div class="mtabs" id="tSel">${ORDER.map(k=>`<button type="button" data-t="${k}" aria-pressed="${k===tsel}">${M[k].t} (${by(k).length})</button>`).join('')}</div>
+ <div class="ans"><button type="button" id="tCsv">ดาวน์โหลด CSV ทั้งหมด</button></div>
+ <details><summary><b>เกณฑ์การให้คะแนน</b></summary>${rubricRows(null,true)}</details><div class="tw" id="tTab"></div></section>`;
+ $('tSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{tsel=b.dataset.t;$('tSel').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
+ $('tCsv').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const H=['ภารกิจ','ชื่อ','ชั้น','เลขที่','คำถาม','C','E','R','ประเมินตนเอง C','E','R','ครู C','ครู E','ครู R','รวมครู','สะท้อนคิด'];
+  const L=[H.map(q).join(',')].concat(all.map(d=>[M[d.task]?.t||d.task,d.name,d.cls,d.no,d.q,d.C,d.E,d.R,d.self?.C,d.self?.E,d.self?.R,d.tscore?.C,d.tscore?.E,d.tscore?.R,tot(d),d.ref].map(q).join(',')));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+L.join('\n')],{type:'text/csv'}));a.download='CER-ม1.csv';a.click()};
+ draw()}
+
+if((location.hash||'')==='#cer')setTimeout(()=>open(),0);
+window.addEventListener('hashchange',()=>{if(location.hash==='#cer')open()});
+})();
+
+</script>
 </html>
