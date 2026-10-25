@@ -1473,11 +1473,11 @@ function rubricRows(sel,disabled){return`<div class="rub"><div class="h"></div>$
 /* ---------- หน้า ---------- */
 const main=document.createElement('main');main.id='cer';main.hidden=true;document.querySelector('.wrap').insertBefore(main,$('pn'));
 const card=document.createElement('section');card.className='cerhome';card.innerHTML=`<div class="ic" aria-hidden="true">🔍</div><div><small>ภารกิจพิเศษ · ภาคเรียนที่ 2</small><h2>นักสืบข้อมูล: ใช้ข้อมูลจริงเป็นหลักฐาน</h2><p>ตั้งคำถามจากสิ่งรอบโรงเรียน เก็บข้อมูล แล้วเขียนคำอธิบายแบบ CER ข้อกล่าวอ้าง · หลักฐาน · เหตุผล</p></div><button type="button" class="go" id="cerGo">เริ่มภารกิจ →</button>`;
-const hero=document.querySelector('#home .hero');hero.after(card);
+const hero=document.querySelector('#home .hero');/* การ์ดหน้าแรกย้ายไปอยู่ในหน้าบทเรียนแล้ว */
 let cur='pre';
 function open(m){if(m)cur=m;['home','quiz'].forEach(x=>$(x)&&($(x).hidden=true));document.querySelectorAll('main[id^="t"]').forEach(x=>x.hidden=true);
  $('bar').hidden=false;$('pn').hidden=true;$('bc').textContent='ภารกิจพิเศษ · นักสืบข้อมูล';$('sib').innerHTML='';main.hidden=false;render();try{history.replaceState(null,'','#cer');scrollTo(0,0)}catch(e){}}
-$('cerGo').onclick=()=>open();
+window.M1CEROpen=m=>open(m);
 const gh=$('goHome').onclick;$('goHome').onclick=()=>{main.hidden=true;gh()};
 document.querySelectorAll('[id^="tab"]').forEach(b=>b.addEventListener('click',()=>{main.hidden=true}));
 
@@ -1581,6 +1581,124 @@ async function teacher(){const B=$('cerBody'),c=ctx();B.innerHTML='<section><p c
 
 if((location.hash||'')==='#cer')setTimeout(()=>open(),0);
 window.addEventListener('hashchange',()=>{if(location.hash==='#cer')open()});
+})();
+
+</script>
+<script>
+/* ===== ฝึกในคาบ (โจทย์สุ่ม ปรับระดับตามผู้เรียน) + ภารกิจ CER ในหน้าบทเรียน ===== */
+(function(){
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ctx=()=>(window.M1DB?window.M1DB():{})||{};
+const css=document.createElement('style');css.textContent=`
+.dlbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:12px 0;padding:12px 16px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(135deg,var(--sheet),var(--solid))}
+.dlbar b{font-family:var(--display);font-size:17px}.dlbar p{margin:2px 0 0;color:var(--soft);font-size:14px}
+.dlbar .bt{display:flex;gap:8px;flex-wrap:wrap}
+.dlban{margin:12px 0;padding:12px 16px;border-radius:16px;background:var(--blue);color:#fff;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.dlban button{background:#fff;color:var(--blue);border:0;font-weight:700}
+#drill .dprog{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}#drill .dprog i{width:16px;height:16px;border-radius:50%;background:var(--line)}#drill .dprog i.ok{background:var(--ok)}#drill .dprog i.no{background:var(--red)}
+#drill .lvl{display:inline-block;border-radius:999px;padding:2px 12px;background:var(--sheet);border:1px solid var(--line);font-size:14px}
+#drill .opts{display:grid;gap:6px;margin:8px 0}
+#drill .done{font-family:var(--display);font-size:24px}
+#drill table{border-collapse:collapse;width:100%;font-size:15px}#drill td,#drill th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left}
+.cermis{text-align:left!important;display:flex!important;margin:14px 0;padding:14px 16px;border-radius:18px;border:1px solid var(--line);border-left:6px solid #e0558f;background:var(--solid);display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.cermis small{font-weight:700;color:#e0558f}.cermis b{display:block;font-family:var(--display);font-size:17px}.cermis p{margin:2px 0 0;color:var(--soft);font-size:14px}
+`;document.head.appendChild(css);
+const by={};META.forEach((m,i)=>by[m.c]=m);
+const LV=['ระดับ 1 พื้นฐาน','ระดับ 2 ฝึกใช้','ระดับ 3 ท้าทาย','ระดับ 4 ประยุกต์'];
+
+/* ---------- หน้าฝึก ---------- */
+const main=document.createElement('main');main.id='drill';main.hidden=true;document.querySelector('.wrap').insertBefore(main,$('pn'));
+let D=null,LIVE=null,liveT=null;
+function poolLevels(c){const p=REG.filter(r=>r.c===c);const ins=p.filter(r=>r.kind==='in'),mc=p.filter(r=>r.kind!=='in');
+ // ระดับ: เลือกตอบเป็นระดับเริ่มต้น แล้วไล่ตามลำดับแบบฝึกเติมคำตอบ
+ const lv=[];if(mc.length)lv.push(mc);ins.forEach(r=>lv.push([r]));return lv.length?lv:[p]}
+function openDrill(c,opt){const m=by[c];if(!m)return;const lv=poolLevels(c);if(!lv[0].length){alert('หัวข้อนี้ยังไม่มีคลังโจทย์');return}
+ const goal=(opt&&opt.goal)||10;D={c,m,lv,L:0,streak:0,miss:0,right:0,done:0,goal,max:goal*2,hist:[],drillId:opt&&opt.id||'',saved:false,maxL:0};
+ ['home','quiz','cer'].forEach(x=>$(x)&&($(x).hidden=true));document.querySelectorAll('main[id^="t"]').forEach(x=>x.hidden=true);
+ $('bar').hidden=false;$('pn').hidden=true;$('bc').textContent=`ฝึกในคาบ · ${m.n} ${m.t}`;
+ $('sib').innerHTML=`<button type="button" id="dlBack">← กลับไปบทเรียน ${esc(m.n)}</button>`;$('dlBack').onclick=()=>{main.hidden=true;$('tab'+c).click()};
+ main.hidden=false;ask();try{scrollTo(0,0)}catch(e){}}
+function ask(){const lv=D.lv[D.L];let r,q,g=0;do{r=pick(lv);try{q=r.make()}catch(e){q=null}}while((!q||D.hist.some(h=>h.q===q.q))&&g++<30);if(!q)return finish();D.cur=q;
+ main.innerHTML=`<p class="ttl">ฝึกในคาบ 🎯</p><section><p class="lead">${esc(D.m.n)} ${esc(D.m.t)} · ตอบถูก ${D.goal} ข้อเพื่อผ่าน ตอบถูกติดกัน 2 ข้อระดับจะสูงขึ้น ถ้าผิดจะได้ข้อใหม่ในเรื่องเดิมให้ลองอีกครั้ง</p>
+ <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="lvl">${LV[Math.min(D.L,3)]}${D.lv.length>1?` (${D.L+1}/${D.lv.length})`:''}</span><span>ถูก <b>${D.right}</b>/${D.goal} · ทำไป ${D.done} ข้อ</span></div>
+ <div class="dprog">${D.hist.map(h=>`<i class="${h.ok?'ok':'no'}"></i>`).join('')}</div></section>
+ <section><h2>ข้อ ${D.done+1}</h2><div class="qbox ${q.long?'long':''}" style="text-align:left">${q.q}</div>
+ ${q.opts?`<div class="opts">${q.opts.map((o,j)=>`<label class="opt"><input type="radio" name="dlo" value="${j}"> ${o}</label>`).join('')}</div>`:`<form class="ans" id="dlF" autocomplete="off" style="justify-content:flex-start">${q.inputs.map((x,j)=>`<label>${x.label||''}<input class="${x.sm?'sm':''}" data-j="${j}" inputmode="text" aria-label="${x.aria||x.label||'คำตอบ'}" placeholder="${x.ph||''}"></label>`).join(' ')}</form>`}
+ <div class="ans" style="justify-content:flex-start"><button type="button" class="go" id="dlChk">ตรวจคำตอบ</button><button type="button" id="dlNx" hidden>ข้อต่อไป</button><button type="button" id="dlEnd">จบการฝึก</button></div><div class="fb" id="dlFb" hidden aria-live="polite"></div></section>`;
+ const f=$('dlF');if(f){f.onsubmit=e=>{e.preventDefault();check()};const i=f.querySelector('input');if(i)i.focus()}
+ $('dlChk').onclick=check;$('dlNx').onclick=next;$('dlEnd').onclick=finish}
+function check(){const q=D.cur;let ok=false;
+ if(q.opts){const r=main.querySelector('input[name="dlo"]:checked');if(!r)return;ok=+r.value===q.correct}
+ else{const v=[...main.querySelectorAll('#dlF input')].map(x=>x.value.trim().replace(/[−–]/g,'-').replace(/[, ]/g,''));if(v.some(x=>x===''))return;ok=v.every(x=>!isNaN(+x))&&q.check(v.map(Number))}
+ main.querySelectorAll('#drill input').forEach(x=>x.disabled=true);
+ D.done++;D.hist.push({q:q.q,ok,L:D.L});if(ok){D.right++;D.streak++;D.miss=0}else{D.streak=0;D.miss++}
+ window.dispatchEvent(new CustomEvent('m1ans',{detail:{c:D.c,ok}}));
+ const fb=$('dlFb');fb.hidden=false;fb.className='fb '+(ok?'ok':'no');
+ let msg='';if(ok&&D.streak>=2&&D.L<D.lv.length-1){D.L++;D.streak=0;msg=' · เก่งมาก ขึ้นระดับถัดไป'}
+ if(!ok&&D.miss>=2&&D.L>0){D.L--;D.miss=0;msg=' · ลองระดับที่ง่ายลงอีกนิด'}
+ if(!ok&&!msg)msg=' · ข้อต่อไปเป็นเรื่องเดิม ตัวเลขใหม่';D.maxL=Math.max(D.maxL,D.L);
+ fb.innerHTML=(ok?'ถูกต้อง':'ยังไม่ถูก')+msg+'<div style="margin-top:4px">'+q.sol+'</div>';
+ $('dlChk').hidden=true;$('dlNx').hidden=false;$('dlNx').focus();
+ if(D.right>=D.goal||D.done>=D.max){$('dlNx').textContent='ดูผล'}}
+function next(){if(D.right>=D.goal||D.done>=D.max)return finish();ask()}
+async function finish(){const c=ctx(),me=window.M1USER;
+ const pass=D.right>=D.goal;
+ main.innerHTML=`<p class="ttl">ผลการฝึกในคาบ</p><section><p class="done">${pass?'ผ่านแล้ว 🎉':'ฝึกต่ออีกนิดนะ'}</p><p class="lead">${esc(D.m.n)} ${esc(D.m.t)} · ตอบถูก <b>${D.right}</b> จาก ${D.done} ข้อ · ระดับสูงสุดที่ไปถึง: ${LV[Math.min(D.maxL,3)]}</p>
+ <div class="dprog">${D.hist.map(h=>`<i class="${h.ok?'ok':'no'}"></i>`).join('')}</div><p id="dlSv" class="lead"></p>
+ <div class="ans" style="justify-content:flex-start"><button type="button" class="go" id="dlAgain">ฝึกอีกรอบ</button><button type="button" id="dlLes">กลับไปบทเรียน</button></div></section>`;
+ $('dlAgain').onclick=()=>openDrill(D.c,{goal:D.goal,id:D.drillId});$('dlLes').onclick=()=>{main.hidden=true;$('tab'+D.c).click()};
+ if(D.saved||!D.done)return;D.saved=true;
+ if(c.DB&&me&&c.U){try{await c.DB.add('drills',{uid:c.U.uid,sid:me.sid,name:me.name,cls:me.cls,no:me.no||'',c:D.c,cname:`${D.m.n} ${D.m.t}`,drillId:D.drillId,goal:D.goal,right:D.right,done:D.done,first:D.right,level:D.maxL+1,pass,time:c.DB.ts()});$('dlSv').textContent='บันทึกผลให้ครูแล้ว'}catch(e){$('dlSv').textContent='บันทึกผลไม่สำเร็จ แคปหน้าจอนี้ให้ครูแทน'}}
+ else $('dlSv').textContent='ยังไม่ได้เข้าสู่ระบบ ผลนี้จึงไม่ถูกบันทึก แคปหน้าจอนี้ให้ครูแทน'}
+
+/* ---------- แถบในหน้าบทเรียน ---------- */
+TOPICS.forEach(c=>{const t=$('t'+c);if(!t||!REG.some(r=>r.c===c))return;const b=document.createElement('div');b.className='dlbar';
+ b.innerHTML=`<div><b>🎯 ฝึกในคาบ</b><p>โจทย์สุ่มตัวเลขใหม่ทุกข้อ ระดับปรับตามคำตอบของเรา ตอบถูก 10 ข้อเพื่อผ่าน</p></div><div class="bt"><button type="button" class="go dlGo">เริ่มฝึก</button><span class="dlT" hidden></span></div>`;
+ const lead=t.querySelector('.lead');(lead||t.firstChild).after(b);b.querySelector('.dlGo').onclick=()=>openDrill(c,ACTIVE&&ACTIVE.c===c?{goal:ACTIVE.goal,id:ACTIVE.id}:{})});
+
+/* ---------- ครูสั่งเริ่มทั้งห้อง ---------- */
+let ACTIVE=null;
+function teacherTools(){const c=ctx();document.querySelectorAll('.dlbar').forEach(b=>{const s=b.querySelector('.dlT');if(!c.ISTEACHER){s.hidden=true;return}
+ const code=b.parentNode.id.slice(1);s.hidden=false;
+ s.innerHTML=`<label style="font-size:14px">ข้อ <input type="number" class="dlN" min="3" max="30" value="10" style="width:4.5em"></label> <label style="font-size:14px">นาที <input type="number" class="dlM" min="5" max="120" value="20" style="width:4.5em"></label> <button type="button" class="dlStart">เริ่มให้ทั้งห้อง</button> <button type="button" class="dlLive">ดูผลสด</button>`;
+ s.querySelector('.dlStart').onclick=async()=>{const goal=+s.querySelector('.dlN').value||10,mins=+s.querySelector('.dlM').value||20,id=code+'-'+Date.now().toString(36);
+  try{await c.DB.set('settings/m1drill',{c:code,goal,id,until:Date.now()+mins*60000});ACTIVE={c:code,goal,id,until:Date.now()+mins*60000};banner();live(code,id)}catch(e){alert('เริ่มไม่สำเร็จ ตรวจว่าใช้บัญชีครูและเพิ่มกฎ Firestore แล้ว')}};
+ s.querySelector('.dlLive').onclick=()=>live(code,ACTIVE&&ACTIVE.c===code?ACTIVE.id:'')})}
+async function live(code,id){const c=ctx();const m=by[code];
+ ['home','quiz','cer'].forEach(x=>$(x)&&($(x).hidden=true));document.querySelectorAll('main[id^="t"]').forEach(x=>x.hidden=true);
+ $('bar').hidden=false;$('pn').hidden=true;$('bc').textContent=`ผลฝึกในคาบ · ${m.n} ${m.t}`;$('sib').innerHTML=`<button type="button" id="dlBack">← กลับไปบทเรียน</button>`;$('dlBack').onclick=()=>{clearInterval(liveT);main.hidden=true;$('tab'+code).click()};
+ main.hidden=false;clearInterval(liveT);
+ const draw=async()=>{let r=[];try{r=await c.DB.q('drills',id?[['drillId','==',id]]:[['c','==',code]])}catch(e){main.innerHTML='<section><p class="fb no">โหลดผลไม่ได้ ตรวจกฎ Firestore ของ drills</p></section>';return}
+  const best={};r.forEach(x=>{const k=x.uid;if(!best[k]||x.right>best[k].right)best[k]=x});const L=Object.values(best).sort((a,b)=>String(a.cls).localeCompare(b.cls)||(+a.no||0)-(+b.no||0));
+  const left=ACTIVE&&ACTIVE.id===id?Math.max(0,Math.round((ACTIVE.until-Date.now())/60000)):null;
+  main.innerHTML=`<p class="ttl">ผลฝึกในคาบ (อัปเดตทุก 10 วินาที)</p><section><p class="lead">${esc(m.n)} ${esc(m.t)} · ${id?'รอบนี้':'ทุกรอบ'} · ส่งแล้ว ${L.length} คน · ผ่าน ${L.filter(x=>x.pass).length} คน${left!=null?` · เหลือเวลา ${left} นาที`:''}</p>
+  <div class="ans" style="justify-content:flex-start">${id?`<button type="button" id="dlStop">ปิดภารกิจรอบนี้</button>`:''}</div>
+  <div style="overflow:auto"><table><tr><th>ชั้น</th><th>เลขที่</th><th>ชื่อ</th><th>ถูก/ทำ</th><th>ระดับ</th><th>ผล</th></tr>${L.map(x=>`<tr><td>${esc(x.cls)}</td><td>${esc(x.no)}</td><td>${esc(x.name)}</td><td>${x.right}/${x.done}</td><td>${x.level||1}</td><td>${x.pass?'ผ่าน':'ยังไม่ผ่าน'}</td></tr>`).join('')||'<tr><td colspan="6">ยังไม่มีใครส่ง</td></tr>'}</table></div></section>`;
+  const st=$('dlStop');if(st)st.onclick=async()=>{try{await c.DB.set('settings/m1drill',{c:'',until:0,id:''});ACTIVE=null;banner();st.remove()}catch(e){}}};
+ await draw();liveT=setInterval(()=>{if(main.hidden)return clearInterval(liveT);draw()},10000)}
+
+/* ---------- แถบแจ้งนักเรียน ---------- */
+const ban=document.createElement('div');ban.className='dlban';ban.hidden=true;$('home').insertBefore(ban,$('home').children[1]||null);
+function banner(){const on=ACTIVE&&ACTIVE.c&&ACTIVE.until>Date.now()&&by[ACTIVE.c];ban.hidden=!on;if(!on)return;const m=by[ACTIVE.c];
+ ban.innerHTML=`<span>🎯 ครูเปิดภารกิจฝึกในคาบ: <b>${esc(m.n)} ${esc(m.t)}</b> · ตอบถูก ${ACTIVE.goal} ข้อ · เหลือ ${Math.max(1,Math.round((ACTIVE.until-Date.now())/60000))} นาที</span><button type="button" id="banGo">เริ่มเลย</button>`;
+ $('banGo').onclick=()=>openDrill(ACTIVE.c,{goal:ACTIVE.goal,id:ACTIVE.id})}
+async function poll(){const c=ctx();if(!c.DB)return;try{const s=await c.DB.get('settings/m1drill');ACTIVE=s&&s.c?s:null}catch(e){}banner()}
+window.addEventListener('m1auth',()=>{poll();teacherTools();
+ setTimeout(()=>{const c=ctx();if(c.ISTEACHER){const T=$('tdash');if(T&&!T.querySelector('.dashLink')){const p=document.createElement('p');p.className='dashLink';p.innerHTML='<a class="go" style="display:inline-block;text-decoration:none;padding:8px 14px;border-radius:12px" href="https://mathdevth.github.io/dash.html" target="_blank" rel="noopener">เปิดแดชบอร์ดรวมทุกวิชา (heatmap) ↗</a>';T.insertBefore(p,T.children[1]||null)}}},0)});
+setInterval(()=>{if(!document.hidden)poll()},60000);
+const gh=$('goHome').onclick;$('goHome').onclick=()=>{main.hidden=true;clearInterval(liveT);gh()};
+TOPICS.forEach(x=>$('tab'+x).addEventListener('click',()=>{main.hidden=true;clearInterval(liveT)}));
+window.M1Drill=openDrill;
+
+/* ---------- ภารกิจ CER ในหน้าบทเรียน ---------- */
+const CERM=[['b13','warm','after','อุ่นเครื่อง CER: ซื้อแบบไหนคุ้มกว่า','ใช้ความรู้เรื่องอัตราส่วนและร้อยละ เขียนข้อกล่าวอ้าง หลักฐาน และเหตุผล'],
+ ['e41','pre','before','CER ก่อนเรียน (ทำก่อนเริ่มหน่วยสถิติ)','ยังไม่ต้องกังวลเรื่องถูกผิด ครูอยากเห็นวิธีคิดของเรา'],
+ ['e43','lab','after','ภารกิจหลัก: นักสืบข้อมูลรอบโรงเรียน (งานกลุ่ม)','ตั้งคำถาม เก็บข้อมูลจริง นำเสนอด้วยแผนภูมิ แล้วเขียน CER'],
+ ['e44','post','after','CER หลังเรียน (ทำหลังจบหน่วยสถิติ)','ใช้ข้อมูลเป็นหลักฐานตอบคำถามจากสถานการณ์จริง']];
+CERM.forEach(([c,k,pos,t,sub])=>{const L=$('t'+c);if(!L||!window.M1CEROpen)return;const d=document.createElement('div');d.className='cermis';
+ d.innerHTML=`<div><small>🔍 ภารกิจนักสืบข้อมูล · CER</small><b>${t}</b><p>${sub}</p></div><button type="button" class="go">เปิดภารกิจ</button>`;
+ d.querySelector('button').onclick=()=>{window.M1CEROpen(k);const m=by[c];$('sib').innerHTML=`<button type="button" id="cerBack">← กลับไปบทเรียน ${esc(m.n)}</button>`;$('cerBack').onclick=()=>{$('cer').hidden=true;$('tab'+c).click()}};
+ if(pos==='before'){const b=L.querySelector('.dlbar')||L.querySelector('.lead');(b||L.firstChild).after(d)}else L.appendChild(d)});
 })();
 
 </script>
