@@ -1585,6 +1585,242 @@ window.addEventListener('hashchange',()=>{if(location.hash==='#cer')open()});
 
 </script>
 <script>
+/* ===== เห็นภาพ + ตัวอย่างหลากหลาย (ภาคเรียนที่ 2) — ภาพวาดด้วยโค้ด ลิขสิทธิ์ครูคุ้ม ===== */
+(function(){
+const css=document.createElement('style');css.textContent=`
+.vz{text-align:left!important}.vz h2{margin-top:0}
+.vz .vrow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:center}
+@media(max-width:760px){.vz .vrow{grid-template-columns:1fr}}
+.vz svg{width:100%;height:auto;display:block;color:var(--ink)}
+.vz .vctl{display:grid!important;grid-template-columns:1fr!important;gap:10px}.vz .vctl label{display:grid;gap:2px;font-size:15px}.vz .vctl label.ck{display:flex;gap:8px;align-items:center}
+.vz input[type=range]{width:100%;accent-color:var(--blue)}
+.vz .big{font-family:var(--display);font-size:19px;line-height:1.35}
+.vz .note2{color:var(--soft);font-size:14px}
+.vz .pill{display:inline-block;border-radius:999px;padding:2px 10px;background:var(--sheet);border:1px solid var(--line);font-size:14px;margin:2px 4px 2px 0}
+.vz .stepb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vz .memo{margin-top:12px;border-radius:14px;padding:10px 14px;background:var(--okbg,#e8f7ee);border-left:5px solid var(--ok)}
+.vz .seg2{display:flex;gap:6px;flex-wrap:wrap}.vz .seg2 button[aria-pressed=true]{background:var(--blue);color:#fff;border-color:transparent}
+.vx{text-align:left!important}.vx .ex{border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin:10px 0;background:var(--solid)}
+.vx .ex .h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.vx .ex .tg{font-size:13px;border-radius:8px;padding:1px 8px;background:var(--sheet);border:1px solid var(--line)}
+.vx .ex ol{margin:8px 0 0;padding-left:22px}.vx .ex li{margin:4px 0}.vx .ex li[hidden]{display:none}
+.vx .ex .ans{margin-top:8px}
+.vx .ex .fin{font-weight:700;color:var(--ok)}
+.vz .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.vz .cards>div{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--solid)}
+.vz .cards .r{display:flex;gap:6px;margin-top:6px}.vz .cards>.ok{border-color:var(--ok);background:var(--okbg,#e8f7ee)}.vz .cards>.no{border-color:var(--red);background:var(--nobg,#fde8ea)}
+`;document.head.appendChild(css);
+const C={b:'#2f7de1',p:'#e0558f',g:'#17a673',o:'#f2a33a',v:'#7c5ce0',t:'#14a3b8'};
+const f2=x=>(+x).toLocaleString('th-TH',{maximumFractionDigits:2});
+const svg=(w,h,inner,lab)=>`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${lab||'ภาพประกอบ'}">${inner}</svg>`;
+const T=(x,y,s,o)=>`<text x="${x}" y="${y}" font-size="${(o&&o.fs)||14}" fill="${(o&&o.c)||'currentColor'}" text-anchor="${(o&&o.a)||'middle'}" ${o&&o.b?'font-weight="700"':''}>${s}</text>`;
+const sec=(c,cls,html)=>{const L=document.getElementById('t'+c);if(!L)return null;const s=document.createElement('section');s.className=cls;s.innerHTML=html;
+ const anchor=[...L.querySelectorAll('section')].find(x=>/แนวคิด/.test(x.textContent.slice(0,40)));(anchor||L.querySelector('.dlbar')||L.querySelector('.lead')).after(s);return s};
+/* ตัวอย่างแบบเปิดทีละขั้น */
+function examples(c,list,after){const html=`<h2>ตัวอย่างหลากหลาย</h2><p class="lead" style="text-align:left">ลองคิดเองก่อน แล้วกด “ขั้นต่อไป” ดูวิธีคิดทีละขั้น</p>`+list.map((e,i)=>`<div class="ex"><div class="h"><b>ตัวอย่างที่ ${i+1}</b><span class="tg">${e.tag}</span></div><div style="margin-top:6px">${e.q}</div>
+ <ol>${e.s.map(x=>`<li hidden>${x}</li>`).join('')}</ol><p class="fin" hidden>${e.a}</p><div class="ans" style="justify-content:flex-start"><button type="button" class="nx">ขั้นต่อไป</button><button type="button" class="al">ดูทั้งหมด</button></div></div>`).join('');
+ const L=document.getElementById('t'+c);if(!L)return;const s=document.createElement('section');s.className='vx';s.innerHTML=html;(after||L.querySelector('.vz')).after(s);
+ s.querySelectorAll('.ex').forEach(ex=>{const li=[...ex.querySelectorAll('li')],fin=ex.querySelector('.fin');let k=0;
+  const upd=()=>{li.forEach((x,i)=>x.hidden=i>=k);fin.hidden=k<li.length;ex.querySelector('.nx').disabled=k>=li.length};
+  ex.querySelector('.nx').onclick=()=>{k++;upd()};ex.querySelector('.al').onclick=()=>{k=li.length;upd()};upd()})}
+function stepper(root,frames,draw){let i=0;const out=root.querySelector('.stage'),cap=root.querySelector('.cap'),n=root.querySelector('.sn');
+ const go=()=>{out.innerHTML=draw(i);cap.innerHTML=frames[i];n.textContent=`ขั้นที่ ${i+1}/${frames.length}`;root.querySelector('.pv').disabled=i===0;root.querySelector('.fw').disabled=i===frames.length-1};
+ root.querySelector('.pv').onclick=()=>{i--;go()};root.querySelector('.fw').onclick=()=>{i++;go()};go()}
+const STEPUI=`<div class="stage"></div><div class="stepb"><button type="button" class="pv">← ย้อน</button><button type="button" class="go fw">ขั้นต่อไป →</button><span class="sn note2"></span></div><p class="cap big" style="font-size:18px;margin:8px 0 0"></p>`;
+
+/* =============== 1.1 อัตราส่วนของจำนวนหลาย ๆ จำนวน =============== */
+(function(){const s=sec('b11','vz',`<h2>เห็นภาพ: สูตรน้ำผลไม้ปั่น</h2><div class="vrow"><div id="vb11"></div><div class="vctl">
+ <p>สูตร มะม่วง : นม : น้ำแข็ง = <b>3 : 2 : 1</b> (หน่วยเป็นถ้วย)</p><label>ทำกี่เท่าของสูตร <b id="vb11k">1</b> เท่า<input type="range" id="vb11r" min="1" max="5" value="1"></label>
+ <p class="big" id="vb11o"></p><p class="note2">คูณทุกจำนวนด้วยจำนวนเดียวกัน อัตราส่วนยังเท่าเดิม รสชาติจึงเหมือนเดิม</p></div></div>
+ <div class="memo"><b>จำง่าย:</b> อัตราส่วนหลายจำนวน = “สูตร” จะทำมากหรือน้อย ต้องคูณ/หาร <u>ทุกตัว</u> ด้วยจำนวนเดียวกัน · เชื่อม a : b กับ b : c ให้ทำ b ให้เท่ากันก่อน</div>`);if(!s)return;
+ const draw=k=>{const items=[['มะม่วง',3*k,C.o],['นม',2*k,C.b],['น้ำแข็ง',1*k,C.t]];let y=20,o='';items.forEach(([n,v,col])=>{o+=T(70,y+18,n,{a:'end'});for(let i=0;i<v;i++)o+=`<rect x="${80+i*24}" y="${y}" width="20" height="26" rx="5" fill="${col}"/>`;o+=T(80+v*24+16,y+18,v,{a:'start',b:1});y+=42});return svg(480,150,o,'แถบแสดงจำนวนถ้วย')};
+ const r=document.getElementById('vb11r');const up=()=>{const k=+r.value;document.getElementById('vb11k').textContent=k;document.getElementById('vb11').innerHTML=draw(k);document.getElementById('vb11o').innerHTML=`${3*k} : ${2*k} : ${1*k} = 3 : 2 : 1`};r.oninput=up;up()})();
+examples('b11',[
+ {tag:'งานช่าง',q:'ผสมคอนกรีตใช้ ปูน : ทราย : หิน = 1 : 2 : 4 ถ้าใช้ทราย 6 ถัง ต้องใช้ปูนและหินอย่างละกี่ถัง',s:['ทรายในสูตรคือ 2 ส่วน แต่ใช้จริง 6 ถัง แสดงว่าคูณด้วย 6 ÷ 2 = 3','ปูน 1 × 3 = 3 ถัง และ หิน 4 × 3 = 12 ถัง'],a:'ปูน 3 ถัง หิน 12 ถัง (อัตราส่วน 3 : 6 : 12)'},
+ {tag:'เชื่อมอัตราส่วน',q:'เงินของ ก : ข = 2 : 3 และ ข : ค = 4 : 5 จงหา ก : ข : ค',s:['ตัวที่ซ้ำกันคือ ข มีค่าเป็น 3 และ 4 → ค.ร.น. ของ 3 และ 4 คือ 12','ก : ข = 2 : 3 = 8 : 12 (คูณ 4) และ ข : ค = 4 : 5 = 12 : 15 (คูณ 3)'],a:'ก : ข : ค = 8 : 12 : 15'},
+ {tag:'แบ่งของ',q:'แบ่งลูกอม 60 เม็ด ให้ 3 คน ในอัตราส่วน 2 : 3 : 5 แต่ละคนได้กี่เม็ด',s:['รวมส่วนทั้งหมด 2 + 3 + 5 = 10 ส่วน','1 ส่วน = 60 ÷ 10 = 6 เม็ด','คนที่ 1 ได้ 2 × 6, คนที่ 2 ได้ 3 × 6, คนที่ 3 ได้ 5 × 6'],a:'12, 18 และ 30 เม็ด'}]);
+
+/* =============== 1.2 สัดส่วน =============== */
+(function(){const s=sec('b12','vz',`<h2>เห็นภาพ: แผนที่และมาตราส่วน</h2><div class="vrow"><div id="vb12"></div><div class="vctl">
+ <label>มาตราส่วน 1 : <b id="vb12s">50,000</b><input type="range" id="vb12r" min="1" max="6" value="3"></label>
+ <label>ระยะบนแผนที่ <b id="vb12d">4</b> ซม.<input type="range" id="vb12m" min="1" max="8" value="4"></label>
+ <p class="big" id="vb12o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> สัดส่วน = อัตราส่วนสองชุดที่เท่ากัน <b>a/b = c/d</b> → คูณไขว้ <b>a × d = b × c</b> แล้วแก้หาตัวที่ไม่รู้ · ตั้งให้ “หน่วยเดียวกันอยู่ตำแหน่งเดียวกัน”</div>`);if(!s)return;
+ const SC=[10000,25000,50000,100000,200000,500000];
+ const up=()=>{const sc=SC[+document.getElementById('vb12r').value-1],d=+document.getElementById('vb12m').value;document.getElementById('vb12s').textContent=sc.toLocaleString();document.getElementById('vb12d').textContent=d;
+  let o=`<rect x="10" y="10" width="460" height="170" rx="12" fill="${C.g}" fill-opacity=".12" stroke="currentColor" stroke-opacity=".2"/><path d="M30 150 C120 60, 200 160, 300 90 S 430 60 460 40" stroke="${C.b}" stroke-width="6" fill="none" stroke-opacity=".5"/>`;
+  const x1=60,x2=60+d*50;o+=`<circle cx="${x1}" cy="120" r="9" fill="${C.p}"/>${T(x1,104,'🏫 โรงเรียน',{fs:13})}<circle cx="${x2}" cy="120" r="9" fill="${C.o}"/>${T(x2,104,'🏠 บ้าน',{fs:13})}<line x1="${x1}" y1="140" x2="${x2}" y2="140" stroke="currentColor" stroke-dasharray="4 3"/>${T((x1+x2)/2,160,d+' ซม. บนแผนที่',{fs:13})}`;
+  for(let i=0;i<=8;i++)o+=`<line x1="${60+i*50}" y1="176" x2="${60+i*50}" y2="${i%2?172:168}" stroke="currentColor"/>`;
+  document.getElementById('vb12').innerHTML=svg(480,190,o,'แผนที่');const cm=d*sc;
+  document.getElementById('vb12o').innerHTML=`1/${sc.toLocaleString()} = ${d}/x → x = ${d} × ${sc.toLocaleString()} = ${cm.toLocaleString()} ซม. = <b>${f2(cm/100000)} กม.</b>`};
+ ['vb12r','vb12m'].forEach(i=>document.getElementById(i).oninput=up);up()})();
+examples('b12',[
+ {tag:'ซื้อของ',q:'ไข่ไก่ 10 ฟอง ราคา 45 บาท ถ้าซื้อ 24 ฟอง ต้องจ่ายเท่าใด',s:['ตั้งสัดส่วน จำนวนฟอง/ราคา: 10/45 = 24/x','คูณไขว้ 10x = 45 × 24 = 1,080','x = 1,080 ÷ 10 = 108'],a:'จ่าย 108 บาท'},
+ {tag:'เงา',q:'ตอนบ่ายเสา 2 เมตรมีเงายาว 3 เมตร ในเวลาเดียวกันต้นไม้มีเงายาว 12 เมตร ต้นไม้สูงเท่าใด',s:['ความสูงต่อความยาวเงาเท่ากันทุกสิ่งในเวลาเดียวกัน: 2/3 = x/12','3x = 24','x = 8'],a:'ต้นไม้สูง 8 เมตร'},
+ {tag:'สูตรอาหาร',q:'สูตรข้าวผัดสำหรับ 4 คนใช้ข้าวสวย 600 กรัม ถ้าทำให้ 10 คน ต้องใช้ข้าวสวยเท่าใด',s:['คน/ข้าว: 4/600 = 10/x','4x = 6,000','x = 1,500'],a:'ใช้ข้าวสวย 1,500 กรัม หรือ 1.5 กิโลกรัม'}]);
+
+/* =============== 1.3 ร้อยละ =============== */
+(function(){const s=sec('b13','vz',`<h2>เห็นภาพ: ป้ายลดราคาที่ร้านค้า</h2><div class="vrow"><div id="vb13"></div><div class="vctl">
+ <label>ราคาป้าย <b id="vb13p">400</b> บาท<input type="range" id="vb13a" min="100" max="1000" step="50" value="400"></label>
+ <label>ลด <b id="vb13d">25</b>%<input type="range" id="vb13b" min="5" max="70" step="5" value="25"></label>
+ <label class="ck"><input type="checkbox" id="vb13v"> บวกภาษีมูลค่าเพิ่ม 7% หลังลดราคา</label>
+ <p class="big" id="vb13o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> ร้อยละ = “จาก 100” · ลด r% เหลือจ่าย (100 − r)% · กำไร/ขาดทุนคิดเทียบ <u>ทุน</u> · ลดราคาคิดเทียบ <u>ราคาป้าย</u> · VAT 7% → จ่าย 107% ของราคาก่อนภาษี</div>`);if(!s)return;
+ const up=()=>{const p=+vb13a.value,d=+vb13b.value,v=vb13v.checked;vb13p.textContent=p;vb13d.textContent=d;let o='';
+  for(let i=0;i<100;i++){const x=10+(i%10)*19,y=10+Math.floor(i/10)*19;o+=`<rect x="${x}" y="${y}" width="16" height="16" rx="3" fill="${i<d?C.p:C.b}" fill-opacity="${i<d?.9:.35}"/>`}
+  o+=T(105,212,`ลด ${d} ช่อง จาก 100 ช่อง`,{fs:13});
+  o+=`<g transform="translate(230,30)"><path d="M0 20 L40 0 H210 V150 H40 L0 130 Z" fill="${C.o}" fill-opacity=".18" stroke="${C.o}"/><circle cx="26" cy="75" r="7" fill="none" stroke="${C.o}"/>${T(125,40,'ราคาป้าย',{fs:13})}<text x="125" y="68" text-anchor="middle" font-size="22" fill="currentColor" text-decoration="line-through">${p} บาท</text>${T(125,100,'ลด '+d+'%',{fs:20,c:C.p,b:1})}${T(125,132,'เหลือ '+f2(p*(100-d)/100)+' บาท',{fs:18,b:1})}</g>`;
+  document.getElementById('vb13').innerHTML=svg(480,225,o,'ตาราง 100 ช่องและป้ายราคา');const after=p*(100-d)/100;
+  document.getElementById('vb13o').innerHTML=`ส่วนลด ${d}% ของ ${p} = ${f2(p*d/100)} บาท<br>จ่าย ${100-d}% ของ ${p} = <b>${f2(after)}</b> บาท`+(v?`<br>รวม VAT: ${f2(after)} × 107/100 = <b>${f2(after*1.07)}</b> บาท`:'')};
+ const vb13a=document.getElementById('vb13a'),vb13b=document.getElementById('vb13b'),vb13v=document.getElementById('vb13v'),vb13p=document.getElementById('vb13p'),vb13d=document.getElementById('vb13d');[vb13a,vb13b,vb13v].forEach(e=>e.oninput=up);up()})();
+examples('b13',[
+ {tag:'กำไร',q:'แม่ค้าซื้อกระเป๋ามา 250 บาท ขายไป 300 บาท ได้กำไรร้อยละเท่าใด',s:['กำไร = 300 − 250 = 50 บาท','เทียบกับทุน: 50/250 = x/100','x = 50 × 100 ÷ 250 = 20'],a:'กำไรร้อยละ 20'},
+ {tag:'ลดซ้อนลด',q:'เสื้อราคา 500 บาท ลด 20% แล้วลดอีก 10% จากราคาที่ลดแล้ว จ่ายเท่าใด (ลดรวม 30% หรือไม่)',s:['ลดครั้งแรกเหลือ 80% → 500 × 80/100 = 400 บาท','ลดครั้งที่สองเหลือ 90% ของ 400 → 360 บาท','ถ้าลด 30% ทีเดียวจะเหลือ 350 บาท จึงไม่เท่ากัน'],a:'จ่าย 360 บาท (ลดจริงร้อยละ 28 ไม่ใช่ 30)'},
+ {tag:'สำรวจ',q:'นักเรียน ม.1 มี 160 คน ร้อยละ 35 มาโรงเรียนด้วยจักรยาน มีกี่คน',s:['x/160 = 35/100','x = 35 × 160 ÷ 100 = 56'],a:'56 คน'},
+ {tag:'ภาษี',q:'ราคาพัดลมรวม VAT 7% แล้ว 1,070 บาท ราคาก่อนภาษีเท่าใด',s:['ราคารวมภาษีคือ 107% ของราคาก่อนภาษี','x/1,070 = 100/107','x = 1,000'],a:'1,000 บาท'}]);
+
+/* =============== 2.1 การสร้างพื้นฐาน =============== */
+(function(){const s=sec('c21','vz',`<h2>เห็นภาพ: แบ่งครึ่งส่วนของเส้นตรงด้วยวงเวียน</h2><div id="vc21">${STEPUI}</div>
+ <div class="memo"><b>จำง่าย:</b> “กางวงเวียนเกินครึ่ง → เขียนโค้งจากปลายทั้งสองข้าง ข้างบน-ข้างล่าง → ลากเส้นผ่านจุดตัด” ได้ทั้ง <u>จุดกึ่งกลาง</u> และ <u>เส้นตั้งฉาก</u> ในครั้งเดียว · ห้ามลบร่องรอยการสร้าง</div>`);if(!s)return;
+ const A=[90,150],B=[330,150],r=150,M=[210,150],h=Math.sqrt(r*r-120*120);
+ const arc=(c,a0,a1,col)=>{const p=t=>[c[0]+r*Math.cos(t),c[1]+r*Math.sin(t)];const [x0,y0]=p(a0),[x1,y1]=p(a1);return`<path d="M${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1}" fill="none" stroke="${col}" stroke-width="2.5"/>`};
+ const F=['เริ่มจากส่วนของเส้นตรง AB ที่ต้องการแบ่งครึ่ง','ใช้ A เป็นจุดศูนย์กลาง กางวงเวียนเกินครึ่งหนึ่งของ AB เขียนส่วนโค้งทั้งด้านบนและด้านล่าง','ใช้ B เป็นจุดศูนย์กลาง รัศมี<u>เท่าเดิม</u> เขียนส่วนโค้งตัดส่วนโค้งแรกที่ C และ D','ลากเส้นตรง CD ตัด AB ที่ M ได้ AM = MB และ CD ⊥ AB'];
+ stepper(document.getElementById('vc21'),F,i=>{let o=`<line x1="${A[0]}" y1="150" x2="${B[0]}" y2="150" stroke="currentColor" stroke-width="3"/>${T(A[0],172,'A',{b:1})}${T(B[0],172,'B',{b:1})}`;
+  if(i>=1)o+=arc(A,-1.15,-0.5,C.b)+arc(A,0.5,1.15,C.b);if(i>=2)o+=arc(B,Math.PI+0.5,Math.PI+1.15,C.p)+arc(B,Math.PI-1.15,Math.PI-0.5,C.p)+`<circle cx="210" cy="${150-h}" r="5" fill="${C.g}"/><circle cx="210" cy="${150+h}" r="5" fill="${C.g}"/>${T(224,150-h,'C',{b:1})}${T(224,150+h+6,'D',{b:1})}`;
+  if(i>=3)o+=`<line x1="210" y1="${150-h-15}" x2="210" y2="${150+h+15}" stroke="${C.g}" stroke-width="3"/><circle cx="210" cy="150" r="6" fill="${C.o}"/>${T(224,170,'M',{b:1})}<rect x="210" y="138" width="12" height="12" fill="none" stroke="currentColor"/>`;
+  return svg(420,300,o,'การแบ่งครึ่งส่วนของเส้นตรง')})})();
+examples('c21',[
+ {tag:'ชีวิตจริง',q:'ต้องการติดโคมไฟบนคาน AB ให้อยู่ตรงกลางพอดี โดยไม่มีไม้บรรทัดวัด จะทำอย่างไร',s:['มองคาน AB เป็นส่วนของเส้นตรง','ใช้การแบ่งครึ่งส่วนของเส้นตรง (เขียนส่วนโค้งจาก A และ B รัศมีเท่ากัน)','จุดที่เส้นผ่านจุดตัดทั้งสองตัด AB คือจุดกึ่งกลาง'],a:'ติดโคมไฟที่จุดกึ่งกลาง M ที่ได้จากการสร้าง'},
+ {tag:'สามเหลี่ยม',q:'สร้างรูปสามเหลี่ยมด้านเท่าที่ยาวด้านละ 5 ซม. ทำอย่างไร',s:['สร้าง AB ยาว 5 ซม.','ใช้ A และ B เป็นจุดศูนย์กลาง รัศมี 5 ซม. เขียนส่วนโค้งตัดกันที่ C','ลาก AC และ BC'],a:'ได้ △ABC ที่ AB = BC = CA = 5 ซม. (ทุกมุมเท่ากับ 60°)'},
+ {tag:'เส้นมัธยฐาน',q:'เส้นมัธยฐานจากจุด A ของ △ABC สร้างอย่างไร',s:['เส้นมัธยฐานลากจากจุดยอดไปยังจุดกึ่งกลางของด้านตรงข้าม','แบ่งครึ่งด้าน BC ได้จุด M','ลาก AM'],a:'AM คือเส้นมัธยฐาน'}]);
+
+/* =============== 2.2 มุมและเส้นขนาน =============== */
+(function(){const s=sec('c22','vz',`<h2>เห็นภาพ: สร้างมุม 60° แล้วแบ่งครึ่งเป็น 30°</h2><div id="vc22">${STEPUI}</div>
+ <div class="memo"><b>จำง่าย:</b> มุม 60° มาจาก <u>สามเหลี่ยมด้านเท่า</u> · มุม 90° มาจาก <u>เส้นตั้งฉาก</u> · แบ่งครึ่งต่อได้ 30°, 45°, 15° · รวมมุมได้ 75° = 60° + 15°, 105° = 90° + 15° · เส้นขนาน = สร้าง <u>มุมแย้ง</u> หรือ <u>มุมภายนอก-ภายใน</u> ให้เท่ากัน</div>`);if(!s)return;
+ const O=[70,240],R=200,r=100,P=(a,rr)=>[O[0]+rr*Math.cos(-a*Math.PI/180),O[1]+rr*Math.sin(-a*Math.PI/180)];
+ const F=['เริ่มจากรังสี OX','ใช้ O เป็นจุดศูนย์กลาง เขียนส่วนโค้งตัด OX ที่ P','ใช้ P เป็นจุดศูนย์กลาง รัศมีเท่าเดิม เขียนส่วนโค้งตัดส่วนโค้งแรกที่ Q (△OPQ เป็นสามเหลี่ยมด้านเท่า)','ลากรังสี OQ ได้มุม XOQ = 60°','แบ่งครึ่งมุม: เขียนส่วนโค้งจาก P และ Q รัศมีเท่ากัน ตัดกันที่ S แล้วลาก OS ได้มุม XOS = 30°'];
+ stepper(document.getElementById('vc22'),F,i=>{const p=P(0,r),q=P(60,r),sx=P(30,r*1.55);let o=`<line x1="${O[0]}" y1="${O[1]}" x2="${O[0]+R*1.6}" y2="${O[1]}" stroke="currentColor" stroke-width="3"/>${T(O[0]-12,O[1]+6,'O',{b:1})}${T(O[0]+R*1.6,O[1]+20,'X',{b:1})}`;
+  if(i>=1){const a=P(80,r);o+=`<path d="M${O[0]+r} ${O[1]} A${r} ${r} 0 0 0 ${a[0]} ${a[1]}" fill="none" stroke="${C.b}" stroke-width="2.5"/><circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${C.b}"/>${T(p[0]+6,p[1]+20,'P',{b:1})}`}
+  if(i>=2){const pp=a=>[p[0]+r*Math.cos(-a*Math.PI/180),p[1]+r*Math.sin(-a*Math.PI/180)],a1=pp(105),a2=pp(135);o+=`<path d="M${a1[0]} ${a1[1]} A${r} ${r} 0 0 0 ${a2[0]} ${a2[1]}" fill="none" stroke="${C.p}" stroke-width="2.5"/><circle cx="${q[0]}" cy="${q[1]}" r="5" fill="${C.p}"/>${T(q[0]-4,q[1]-12,'Q',{b:1})}<path d="M${O[0]} ${O[1]} L${p[0]} ${p[1]} L${q[0]} ${q[1]} Z" fill="${C.p}" fill-opacity=".08" stroke="${C.p}" stroke-dasharray="4 3"/>`}
+  if(i>=3){const e=P(60,R*1.2);o+=`<line x1="${O[0]}" y1="${O[1]}" x2="${e[0]}" y2="${e[1]}" stroke="${C.p}" stroke-width="3"/>${T(O[0]+48,O[1]-12,'60°',{c:C.p,b:1})}`}
+  if(i>=4){const e=P(30,R*1.5);o+=`<circle cx="${sx[0]}" cy="${sx[1]}" r="5" fill="${C.g}"/>${T(sx[0]+12,sx[1]-6,'S',{b:1})}<line x1="${O[0]}" y1="${O[1]}" x2="${e[0]}" y2="${e[1]}" stroke="${C.g}" stroke-width="3"/>${T(O[0]+75,O[1]-8,'30°',{c:C.g,b:1})}`}
+  return svg(420,270,o,'การสร้างมุม 60 และ 30 องศา')})})();
+examples('c22',[
+ {tag:'วางแผน',q:'จะสร้างมุม 135° ได้อย่างไร',s:['135° = 90° + 45°','สร้างมุม 90° (เส้นตั้งฉาก) แล้วแบ่งครึ่งมุม 90° อีกมุมหนึ่งที่อยู่ติดกันได้ 45°','หรือ 135° = 180° − 45° สร้าง 45° แล้วใช้มุมประกอบบนเส้นตรง'],a:'สร้าง 90° ต่อกับ 45° ได้มุม 135°'},
+ {tag:'เส้นขนาน',q:'ช่างต้องการตีไม้ระแนงให้ขนานกับขอบหน้าต่าง โดยใช้หลักการสร้าง ทำอย่างไร',s:['ลากเส้นตัด (เส้นตัดขวาง) ผ่านขอบหน้าต่างและจุดที่จะตีไม้','สร้างมุมที่จุดนั้นให้เท่ากับมุมแย้ง (หรือมุมภายนอกและภายในข้างเดียวกัน) กับขอบหน้าต่าง','เส้นที่ได้ขนานกับขอบหน้าต่าง'],a:'สร้างมุมแย้งให้เท่ากัน จะได้เส้นขนาน'},
+ {tag:'สี่เหลี่ยม',q:'สร้างสี่เหลี่ยมจัตุรัสยาวด้านละ 4 ซม.',s:['สร้าง AB ยาว 4 ซม.','สร้างเส้นตั้งฉากที่ A และ B','บนเส้นตั้งฉากวัด AD = BC = 4 ซม. แล้วลาก DC'],a:'ได้สี่เหลี่ยมจัตุรัส ABCD'}]);
+
+/* =============== 2.3 การนำไปใช้ =============== */
+(function(){const s=sec('c23','vz',`<h2>เห็นภาพ: ทางที่สั้นที่สุดจากบ้านไปถนน</h2><div class="vrow"><div id="vc23"></div><div class="vctl">
+ <label>เลื่อนจุดที่จะทำทางเดินไปบนถนน<input type="range" id="vc23r" min="20" max="460" value="380"></label><p class="big" id="vc23o"></p>
+ <p class="note2">ลองเลื่อนดูว่าตำแหน่งไหนสั้นที่สุด แล้วเทียบกับเส้นตั้งฉาก (เส้นประสีเขียว)</p></div></div>
+ <div class="memo"><b>จำง่าย:</b> ระยะทางที่สั้นที่สุดจากจุดไปเส้นตรง คือ <u>เส้นตั้งฉาก</u> · จุดที่ห่างจากสองเส้นเท่ากันอยู่บน <u>เส้นแบ่งครึ่งมุม</u> · จุดที่ห่างจากสองจุดเท่ากันอยู่บน <u>เส้นแบ่งครึ่งตั้งฉาก</u></div>`);if(!s)return;
+ const H=[200,50],Y=200;const up=()=>{const x=+document.getElementById('vc23r').value,d=Math.hypot(x-H[0],Y-H[1]),dm=Y-H[1];
+  const o=`<rect x="0" y="${Y}" width="480" height="40" fill="currentColor" fill-opacity=".15"/><line x1="0" y1="${Y+20}" x2="480" y2="${Y+20}" stroke="currentColor" stroke-dasharray="14 10" stroke-opacity=".5"/>${T(440,Y+32,'ถนน',{fs:13})}
+  <text x="${H[0]}" y="${H[1]+8}" font-size="30" text-anchor="middle">🏠</text><line x1="${H[0]}" y1="${H[1]+14}" x2="${H[0]}" y2="${Y}" stroke="${C.g}" stroke-width="3" stroke-dasharray="6 4"/><rect x="${H[0]}" y="${Y-12}" width="12" height="12" fill="none" stroke="${C.g}"/>
+  <line x1="${H[0]}" y1="${H[1]+14}" x2="${x}" y2="${Y}" stroke="${C.p}" stroke-width="3.5"/><circle cx="${x}" cy="${Y}" r="7" fill="${C.p}"/>`;
+  document.getElementById('vc23').innerHTML=svg(480,250,o,'บ้านและถนน');document.getElementById('vc23o').innerHTML=`ทางเดินยาว ≈ <b>${f2(d/10)}</b> ม.<br>เส้นตั้งฉากยาว ${f2(dm/10)} ม. ${Math.abs(x-H[0])<6?'<b style="color:var(--ok)">← สั้นที่สุดแล้ว!</b>':''}`};
+ document.getElementById('vc23r').oninput=up;up()})();
+examples('c23',[
+ {tag:'ปั๊มน้ำ',q:'หมู่บ้าน A และ B อยู่ริมแม่น้ำฝั่งเดียวกัน ต้องการตั้งถังเก็บน้ำให้ห่างจากทั้งสองหมู่บ้านเท่ากัน ควรอยู่ที่ใด',s:['จุดที่ห่างจาก A และ B เท่ากันอยู่บนเส้นแบ่งครึ่งตั้งฉากของ AB','สร้างเส้นแบ่งครึ่งตั้งฉากของ AB','ตั้งถังที่จุดใดก็ได้บนเส้นนี้ เช่น จุดที่เส้นตัดแม่น้ำ'],a:'บนเส้นแบ่งครึ่งตั้งฉากของ AB'},
+ {tag:'ทางแยก',q:'ถนนสองสายตัดกันเป็นมุม ต้องการติดเสาไฟให้ห่างจากถนนทั้งสองเท่ากัน',s:['จุดที่ห่างจากแขนทั้งสองของมุมเท่ากันอยู่บนเส้นแบ่งครึ่งมุม','สร้างเส้นแบ่งครึ่งมุมที่ทางแยก'],a:'ติดเสาไฟบนเส้นแบ่งครึ่งมุม'},
+ {tag:'ออกแบบ',q:'ออกแบบลายกระเบื้องสี่เหลี่ยมจัตุรัสที่มีวงกลมแนบในพอดี ต้องหาจุดศูนย์กลางอย่างไร',s:['ลากเส้นทแยงมุมทั้งสองของสี่เหลี่ยมจัตุรัส','จุดตัดของเส้นทแยงมุมคือจุดศูนย์กลาง','รัศมีเท่ากับครึ่งหนึ่งของความยาวด้าน'],a:'จุดศูนย์กลางอยู่ที่จุดตัดเส้นทแยงมุม'}]);
+
+/* =============== 3.1 กราฟแสดงความสัมพันธ์ =============== */
+(function(){const s=sec('d31','vz',`<h2>เห็นภาพ: กราฟเล่าเรื่องการปั่นจักรยานไปโรงเรียน</h2><div class="vrow"><div id="vd31"></div><div class="vctl">
+ <label>เวลา <b id="vd31t">0</b> นาที<input type="range" id="vd31r" min="0" max="30" value="0"></label><p class="big" id="vd31o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> อ่านกราฟให้ดู “แกนนอนคืออะไร แกนตั้งคืออะไร” ก่อน · เส้น<u>ชัน</u> = เปลี่ยนเร็ว · เส้น<u>ราบ</u> = หยุด/ไม่เปลี่ยน · จุดบนกราฟคือ <u>คู่อันดับ (x, y)</u></div>`);if(!s)return;
+ const P=[[0,0],[10,2],[15,2],[25,4.5],[30,5]],y=t=>{for(let i=1;i<P.length;i++)if(t<=P[i][0]){const [a,b]=P[i-1],[c,d]=P[i];return b+(d-b)*(t-a)/(c-a)}return 5};
+ const X=t=>50+t*13,Yv=v=>200-v*34;const up=()=>{const t=+document.getElementById('vd31r').value,v=y(t);document.getElementById('vd31t').textContent=t;
+  let o=`<line x1="50" y1="200" x2="450" y2="200" stroke="currentColor"/><line x1="50" y1="200" x2="50" y2="20" stroke="currentColor"/>${T(250,236,'เวลา (นาที)',{fs:13})}<text x="16" y="110" font-size="13" fill="currentColor" transform="rotate(-90 16 110)" text-anchor="middle">ระยะทาง (กม.)</text>`;
+  for(let k=0;k<=30;k+=5)o+=T(X(k),216,k,{fs:12});for(let k=0;k<=5;k++)o+=T(40,Yv(k)+4,k,{fs:12,a:'end'})+`<line x1="50" x2="450" y1="${Yv(k)}" y2="${Yv(k)}" stroke="currentColor" stroke-opacity=".1"/>`;
+  o+=`<polyline points="${P.map(p=>X(p[0])+','+Yv(p[1])).join(' ')}" fill="none" stroke="${C.b}" stroke-width="3.5"/><circle cx="${X(t)}" cy="${Yv(v)}" r="8" fill="${C.p}"/>${T(X(t),Yv(v)-14,'🚲',{fs:20})}`;
+  document.getElementById('vd31').innerHTML=svg(470,245,o,'กราฟระยะทางกับเวลา');
+  const st=t<10?'ปั่นออกจากบ้าน':t<=15?'แวะซื้อของที่ร้าน (หยุด เส้นราบ)':t<=25?'ปั่นต่อเร็วขึ้น (เส้นชันกว่า)':'ปั่นช้าลงใกล้ถึงโรงเรียน';
+  document.getElementById('vd31o').innerHTML=`จุด (${t}, ${f2(v)})<br><span style="font-size:17px">${st}</span>`};document.getElementById('vd31r').oninput=up;up()})();
+examples('d31',[
+ {tag:'อ่านกราฟ',q:'จากกราฟด้านบน ช่วงไหนปั่นเร็วที่สุด รู้ได้อย่างไร',s:['เปรียบเทียบความชันของแต่ละช่วง','นาที 0–10 ไป 2 กม. (0.2 กม./นาที) · นาที 15–25 ไป 2.5 กม. (0.25 กม./นาที) · นาที 25–30 ไป 0.5 กม.'],a:'นาทีที่ 15–25 เส้นชันที่สุด จึงเร็วที่สุด'},
+ {tag:'สร้างคู่อันดับ',q:'ค่าส่งพัสดุ กิโลกรัมแรก 30 บาท กิโลกรัมต่อไปกิโลกรัมละ 10 บาท เขียนคู่อันดับ (น้ำหนัก, ค่าส่ง) 1–4 กก.',s:['1 กก. → 30 บาท','2 กก. → 40, 3 กก. → 50, 4 กก. → 60'],a:'(1, 30), (2, 40), (3, 50), (4, 60) จุดเรียงเป็นแนวเส้นตรง'},
+ {tag:'จตุภาค',q:'จุด (−3, 2) อยู่จตุภาคใด และถ้าย้ายไปทางขวา 5 หน่วยจะอยู่ที่ใด',s:['x ลบ y บวก → จตุภาคที่ 2','เลื่อนขวา 5 หน่วย x เพิ่ม 5 → (2, 2)'],a:'จตุภาคที่ 2 → ย้ายแล้วอยู่ (2, 2) ในจตุภาคที่ 1'}]);
+
+/* =============== 3.2 สมการเชิงเส้นสองตัวแปรและกราฟ =============== */
+(function(){const s=sec('d32','vz',`<h2>เห็นภาพ: ค่าโทรศัพท์ y = mx + c</h2><div class="vrow"><div id="vd32"></div><div class="vctl">
+ <label>ค่าบริการต่อ GB (m) <b id="vd32a">20</b> บาท<input type="range" id="vd32m" min="0" max="50" step="5" value="20"></label>
+ <label>ค่าบริการรายเดือน (c) <b id="vd32b">100</b> บาท<input type="range" id="vd32c" min="0" max="300" step="25" value="100"></label>
+ <p class="big" id="vd32o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> สมการ <b>y = mx + c</b> กราฟเป็นเส้นตรงเสมอ · <b>c</b> คือจุดตัดแกน Y (ค่าเริ่มต้น) · <b>m</b> คือความชัน (เพิ่มขึ้นทีละเท่าไร) · m &gt; 0 ทำมุมแหลมกับแกน X · m &lt; 0 ทำมุมป้าน · m = 0 ขนานแกน X</div>`);if(!s)return;
+ const up=()=>{const m=+document.getElementById('vd32m').value,c=+document.getElementById('vd32c').value;document.getElementById('vd32a').textContent=m;document.getElementById('vd32b').textContent=c;
+  const X=x=>50+x*38,Y=v=>210-v*0.28;let o=`<line x1="50" y1="210" x2="450" y2="210" stroke="currentColor"/><line x1="50" y1="210" x2="50" y2="10" stroke="currentColor"/>${T(250,244,'ปริมาณเน็ตที่ใช้ x (GB)',{fs:13})}`;
+  for(let k=0;k<=10;k+=2)o+=T(X(k),226,k,{fs:12});for(let k=0;k<=700;k+=100)o+=T(44,Y(k)+4,k,{fs:11,a:'end'})+`<line x1="50" x2="450" y1="${Y(k)}" y2="${Y(k)}" stroke="currentColor" stroke-opacity=".08"/>`;
+  o+=`<line x1="${X(0)}" y1="${Y(c)}" x2="${X(10)}" y2="${Y(c+10*m)}" stroke="${C.b}" stroke-width="3.5"/><circle cx="${X(0)}" cy="${Y(c)}" r="6" fill="${C.p}"/>${T(X(0)+10,Y(c)-8,'(0, '+c+')',{fs:12,a:'start',c:C.p})}`;
+  for(let k=1;k<=10;k++)o+=`<circle cx="${X(k)}" cy="${Y(c+k*m)}" r="3.5" fill="${C.b}"/>`;
+  document.getElementById('vd32').innerHTML=svg(470,250,o,'กราฟเส้นตรง');document.getElementById('vd32o').innerHTML=`y = ${m}x + ${c}<br><span style="font-size:17px">ใช้ 6 GB จ่าย ${m}(6) + ${c} = <b>${6*m+c}</b> บาท</span>`};
+ ['vd32m','vd32c'].forEach(i=>document.getElementById(i).oninput=up);up()})();
+examples('d32',[
+ {tag:'จุดตัดแกน',q:'หาจุดตัดแกน X และแกน Y ของกราฟ 2x + 3y = 12',s:['ตัดแกน Y ให้ x = 0: 3y = 12 → y = 4 ได้ (0, 4)','ตัดแกน X ให้ y = 0: 2x = 12 → x = 6 ได้ (6, 0)','ลากเส้นตรงผ่านสองจุดนี้'],a:'(6, 0) และ (0, 4)'},
+ {tag:'ชีวิตจริง',q:'ซื้อปากกาด้ามละ 10 บาท และดินสอแท่งละ 5 บาท รวม 50 บาท เขียนสมการและหาคำตอบที่เป็นไปได้',s:['ให้ปากกา x ด้าม ดินสอ y แท่ง: 10x + 5y = 50','x, y ต้องเป็นจำนวนเต็มไม่ติดลบ','x = 0, 1, 2, 3, 4, 5 → y = 10, 8, 6, 4, 2, 0'],a:'เช่น (2, 6) คือ ปากกา 2 ด้าม ดินสอ 6 แท่ง'},
+ {tag:'ตรวจคำตอบ',q:'(3, −1) เป็นคำตอบของ x − 2y = 5 หรือไม่',s:['แทน x = 3, y = −1','3 − 2(−1) = 3 + 2 = 5 ✓'],a:'เป็นคำตอบ'}]);
+
+/* =============== 3.3 การนำไปใช้ =============== */
+(function(){const s=sec('d33','vz',`<h2>เห็นภาพ: ขายน้ำมะพร้าวให้คุ้มทุน</h2><div class="vrow"><div id="vd33"></div><div class="vctl">
+ <p>ลงทุนอุปกรณ์ <b>300</b> บาท ต้นทุนต่อขวด <b>15</b> บาท</p><label>ตั้งราคาขายขวดละ <b id="vd33p">35</b> บาท<input type="range" id="vd33r" min="20" max="60" step="5" value="35"></label><p class="big" id="vd33o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> จุดที่กราฟ<u>รายได้</u>ตัดกับกราฟ<u>ต้นทุน</u> = <b>จุดคุ้มทุน</b> · ขายน้อยกว่านั้นขาดทุน มากกว่านั้นกำไร · กำไร = รายได้ − ต้นทุน</div>`);if(!s)return;
+ const up=()=>{const p=+document.getElementById('vd33r').value;document.getElementById('vd33p').textContent=p;const X=n=>50+n*13,Y=v=>210-v*0.105;
+  let o=`<line x1="50" y1="210" x2="450" y2="210" stroke="currentColor"/><line x1="50" y1="210" x2="50" y2="10" stroke="currentColor"/>${T(250,244,'จำนวนขวดที่ขาย',{fs:13})}`;
+  for(let k=0;k<=30;k+=5)o+=T(X(k),226,k,{fs:12});for(let k=0;k<=1800;k+=300)o+=T(44,Y(k)+4,k,{fs:11,a:'end'})+`<line x1="50" x2="450" y1="${Y(k)}" y2="${Y(k)}" stroke="currentColor" stroke-opacity=".08"/>`;
+  o+=`<line x1="${X(0)}" y1="${Y(300)}" x2="${X(30)}" y2="${Y(300+15*30)}" stroke="${C.o}" stroke-width="3.5"/>${T(X(30)-4,Y(750)-8,'ต้นทุน',{fs:12,a:'end',c:C.o})}<line x1="${X(0)}" y1="${Y(0)}" x2="${X(30)}" y2="${Y(p*30)}" stroke="${C.g}" stroke-width="3.5"/>${T(X(30)-4,Y(p*30)+16,'รายได้',{fs:12,a:'end',c:C.g})}`;
+  const be=300/(p-15);if(be<=30)o+=`<circle cx="${X(be)}" cy="${Y(p*be)}" r="7" fill="${C.p}"/>${T(X(be),Y(p*be)-12,'คุ้มทุน',{fs:12,c:C.p,b:1})}`;
+  document.getElementById('vd33').innerHTML=svg(470,250,o,'กราฟจุดคุ้มทุน');
+  document.getElementById('vd33o').innerHTML=`รายได้ y = ${p}x · ต้นทุน y = 300 + 15x<br>คุ้มทุนเมื่อ ${p}x = 300 + 15x → x = ${f2(be)}<br>ต้องขายอย่างน้อย <b>${Math.ceil(be-1e-9)}</b> ขวด`};document.getElementById('vd33r').oninput=up;up()})();
+examples('d33',[
+ {tag:'เลือกแพ็กเกจ',q:'แพ็กเกจ A จ่าย 200 บาท/เดือน ไม่จำกัด · แพ็กเกจ B จ่าย 50 บาท + 25 บาทต่อ GB ใช้กี่ GB แล้วสองแบบจ่ายเท่ากัน',s:['A: y = 200 · B: y = 50 + 25x','200 = 50 + 25x → 25x = 150 → x = 6'],a:'ใช้ 6 GB จ่ายเท่ากัน ถ้าใช้มากกว่า 6 GB เลือก A คุ้มกว่า'},
+ {tag:'ถังน้ำ',q:'ถังมีน้ำ 120 ลิตร ไหลออกนาทีละ 8 ลิตร เขียนสมการและหาว่ากี่นาทีน้ำหมด',s:['ให้เวลา x นาที น้ำเหลือ y ลิตร: y = 120 − 8x','น้ำหมดเมื่อ y = 0: 8x = 120'],a:'x = 15 นาที (กราฟตัดแกน X ที่ (15, 0))'},
+ {tag:'อุณหภูมิ',q:'สูตร F = 1.8C + 32 ถ้าวันนี้ 30 °C เป็นกี่ °F',s:['แทน C = 30','F = 1.8(30) + 32 = 54 + 32'],a:'86 °F'}]);
+
+/* =============== 4.1–4.2 คำถามทางสถิติ =============== */
+(function(){const Q=[['นักเรียนห้องเรามาโรงเรียนด้วยวิธีใดบ้าง',1],['โรงเรียนเรามีอาคารเรียนกี่หลัง',0],['เพื่อนในห้องนอนวันละกี่ชั่วโมง',1],['วันนี้ฝนตกหรือไม่',0],['ร้านค้าในโรงเรียนขายน้ำได้วันละกี่ขวด',1],['ครูประจำชั้นของเราชื่ออะไร',0]];
+ const s=sec('e41','vz',`<h2>เห็นภาพ: คำถามนี้เป็นคำถามทางสถิติไหม</h2><p class="lead" style="text-align:left">คำถามทางสถิติต้อง <b>เก็บข้อมูลหลายตัว</b> และ <b>คำตอบแตกต่างกันได้</b> ลองแยกดู</p><div class="cards" id="ve41">${Q.map((q,i)=>`<div data-i="${i}">${q[0]}<div class="r"><button type="button" data-a="1">ใช่</button><button type="button" data-a="0">ไม่ใช่</button></div><p class="note2" hidden></p></div>`).join('')}</div>
+ <div class="memo"><b>จำง่าย: “หลายคน หลายคำตอบ”</b> = คำถามทางสถิติ · วิธีเก็บข้อมูล: <u>สังเกต</u> (นับ ดู) · <u>สอบถาม/สัมภาษณ์</u> (ถามคน) · <u>ทดลอง</u> (ลองทำแล้ววัดผล) · ข้อมูลเชิง<u>ปริมาณ</u> = ตัวเลขที่วัดได้ · เชิง<u>คุณภาพ</u> = หมวดหมู่ ความชอบ</div>`);if(!s)return;
+ s.querySelectorAll('#ve41 > div').forEach(d=>d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const q=Q[+d.dataset.i],ok=+b.dataset.a===q[1];d.className=ok?'ok':'no';const n=d.querySelector('.note2');n.hidden=false;n.textContent=(ok?'ถูกต้อง ':'ยังไม่ถูก ')+(q[1]?'ต้องถามหลายคน คำตอบแตกต่างกัน':'มีคำตอบเดียว ไม่ต้องเก็บข้อมูลหลายตัว')}))})();
+examples('e41',[
+ {tag:'ปรับคำถาม',q:'“สมชายสูงกี่เซนติเมตร” ไม่ใช่คำถามทางสถิติ จะปรับให้เป็นคำถามทางสถิติได้อย่างไร',s:['คำถามเดิมถามคนเดียว คำตอบเดียว','ขยายให้ถามหลายคน'],a:'“นักเรียน ม.1 ห้องนี้สูงกี่เซนติเมตร และส่วนใหญ่สูงประมาณเท่าใด”'},
+ {tag:'เลือกวิธีเก็บ',q:'อยากรู้ว่า “ปุ๋ยหมักทำให้ต้นถั่วงอกโตเร็วกว่าไม่ใส่ปุ๋ยหรือไม่” ควรเก็บข้อมูลแบบใด',s:['ต้องลงมือทำแล้ววัดผลเปรียบเทียบสองกลุ่ม','ปลูก 2 กลุ่ม ใส่ปุ๋ยกับไม่ใส่ วัดความสูงทุกวัน'],a:'การทดลอง'},
+ {tag:'ประเภทคำถาม',q:'“นักเรียนที่นอนดึกได้คะแนนสอบต่ำกว่าหรือไม่” เป็นคำถามประเภทใด',s:['ถามว่าสองสิ่ง (เวลานอน กับ คะแนน) เกี่ยวข้องกันหรือไม่'],a:'คำถามเชิงความสัมพันธ์'}]);
+
+/* =============== 4.3 การนำเสนอข้อมูล =============== */
+(function(){const D=[['เดิน',8,'🚶'],['จักรยาน',14,'🚲'],['มอเตอร์ไซค์',22,'🛵'],['รถโรงเรียน',10,'🚌'],['รถยนต์',6,'🚗']];
+ const s=sec('e43','vz',`<h2>เห็นภาพ: ข้อมูลเดียวกัน นำเสนอได้หลายแบบ</h2><p class="lead" style="text-align:left">วิธีมาโรงเรียนของนักเรียน ม.1 จำนวน 60 คน</p><div class="seg2" id="ve43s">${['แผนภูมิรูปภาพ','แผนภูมิแท่ง','แผนภูมิรูปวงกลม','ตาราง'].map((x,i)=>`<button type="button" data-i="${i}" aria-pressed="${i===1}">${x}</button>`).join('')}</div><div id="ve43" style="margin-top:10px"></div><p class="note2" id="ve43n"></p>
+ <div class="memo"><b>จำง่าย:</b> <u>รูปภาพ</u> ดึงดูด อ่านง่าย (ต้องบอกว่า 1 รูปแทนกี่หน่วย) · <u>แท่ง</u> เปรียบเทียบมาก-น้อย · <u>เส้น</u> ดูการเปลี่ยนแปลงตามเวลา · <u>วงกลม</u> ดูส่วนของทั้งหมด (มุม = ส่วน/ทั้งหมด × 360°)</div>`);if(!s)return;
+ const tot=60,COL=[C.b,C.p,C.g,C.o,C.v];
+ const V=[()=>{let o='';D.forEach((d,i)=>{o+=T(110,30+i*40,d[0],{a:'end'});const n=d[1]/2;for(let k=0;k<Math.floor(n);k++)o+=`<text x="${130+k*26}" y="${36+i*40}" font-size="22">${d[2]}</text>`;if(n%1)o+=`<text x="${130+Math.floor(n)*26}" y="${36+i*40}" font-size="22" opacity=".45">${d[2]}</text>`});return svg(480,215,o+T(470,210,'1 รูป = 2 คน (จาง = 1 คน)',{fs:12,a:'end'}),'แผนภูมิรูปภาพ')},
+  ()=>{let o=`<line x1="40" y1="190" x2="470" y2="190" stroke="currentColor"/>`;D.forEach((d,i)=>{const h=d[1]*7,x=60+i*82;o+=`<rect x="${x}" y="${190-h}" width="56" height="${h}" rx="6" fill="${COL[i]}"/>${T(x+28,184-h,d[1],{b:1})}${T(x+28,208,d[0],{fs:12})}`});return svg(480,215,o,'แผนภูมิแท่ง')},
+  ()=>{let a=-Math.PI/2,o='';D.forEach((d,i)=>{const f=d[1]/tot,b=a+f*2*Math.PI,p=t=>[130+95*Math.cos(t),110+95*Math.sin(t)],[x1,y1]=p(a),[x2,y2]=p(b);o+=`<path d="M130 110 L${x1} ${y1} A95 95 0 ${f>.5?1:0} 1 ${x2} ${y2} Z" fill="${COL[i]}" stroke="#fff" stroke-width="2"/><rect x="260" y="${24+i*32}" width="16" height="16" rx="4" fill="${COL[i]}"/>${T(284,37+i*32,`${d[0]} ${d[1]} คน · ${f2(f*100)}% · ${f2(f*360)}°`,{fs:13,a:'start'})}`;a=b});return svg(480,220,o,'แผนภูมิรูปวงกลม')},
+  ()=>`<table style="width:100%;border-collapse:collapse">${'<tr><th style="text-align:left">วิธีมาโรงเรียน</th><th>จำนวน (คน)</th><th>ร้อยละ</th></tr>'+D.map(d=>`<tr><td>${d[2]} ${d[0]}</td><td style="text-align:center">${d[1]}</td><td style="text-align:center">${f2(d[1]/tot*100)}</td></tr>`).join('')}<tr><th style="text-align:left">รวม</th><th>60</th><th>100</th></tr></table>`];
+ const N=['เห็นภาพรวมเร็ว เหมาะกับป้ายนิเทศ','เปรียบเทียบได้ชัดว่ามอเตอร์ไซค์มากที่สุด','เห็นว่าแต่ละวิธีเป็นส่วนเท่าใดของทั้งหมด','ตัวเลขละเอียดที่สุด ใช้ต่อในการคำนวณ'];
+ const bs=[...s.querySelectorAll('#ve43s button')];const go=i=>{bs.forEach((b,k)=>b.setAttribute('aria-pressed',k===i));document.getElementById('ve43').innerHTML=V[i]();document.getElementById('ve43n').textContent=N[i]};bs.forEach(b=>b.onclick=()=>go(+b.dataset.i));go(1)})();
+examples('e43',[
+ {tag:'มุมวงกลม',q:'นักเรียน 40 คน ชอบกีฬาฟุตบอล 14 คน ในแผนภูมิรูปวงกลมต้องใช้มุมกี่องศา',s:['มุม = ส่วน/ทั้งหมด × 360°','14/40 × 360 = 126'],a:'126°'},
+ {tag:'เลือกแผนภูมิ',q:'ต้องการนำเสนออุณหภูมิตอนเที่ยงทุกวันตลอด 1 เดือน ควรใช้แผนภูมิแบบใด',s:['ข้อมูลเปลี่ยนแปลงตามเวลาต่อเนื่อง','กราฟเส้นแสดงแนวโน้มขึ้น-ลงได้ชัด'],a:'กราฟเส้น'},
+ {tag:'อ่านรูปภาพ',q:'แผนภูมิรูปภาพกำหนด 1 รูป = 5 คน ถ้ามี 3 รูปครึ่ง หมายถึงกี่คน',s:['3 รูป = 15 คน','ครึ่งรูป = 2.5 คน → ในข้อมูลจริงประมาณ 2–3 คน'],a:'ประมาณ 17–18 คน (3.5 × 5 = 17.5)'}]);
+
+/* =============== 4.4 การนำสถิติไปใช้ =============== */
+(function(){const s=sec('e44','vz',`<h2>เห็นภาพ: กราฟหลอกตา</h2><div class="vrow"><div id="ve44"></div><div class="vctl">
+ <p>ยอดขายน้ำดื่มของร้าน 2 ร้านในหนึ่งวัน: ร้าน ก <b>96</b> ขวด · ร้าน ข <b>100</b> ขวด</p>
+ <label class="ck"><input type="checkbox" id="ve44c"> ให้แกนตั้งเริ่มที่ 90 (ตัดแกน)</label><p class="big" id="ve44o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> ก่อนเชื่อกราฟ ดู <u>แกนเริ่มที่ 0 ไหม</u> · <u>ขนาดกลุ่มตัวอย่าง</u> พอไหม · <u>ใครทำ</u> ทำเพื่ออะไร · สรุปจากข้อมูลจริง ไม่ใช่จากความรู้สึก</div>`);if(!s)return;
+ const up=()=>{const cut=document.getElementById('ve44c').checked,base=cut?90:0,Y=v=>200-(v-base)*(cut?17:1.8);let o=`<line x1="60" y1="200" x2="420" y2="200" stroke="currentColor"/><line x1="60" y1="200" x2="60" y2="10" stroke="currentColor"/>`;
+  for(let k=base;k<=100;k+=cut?2:20)o+=T(52,Y(k)+4,k,{fs:12,a:'end'})+`<line x1="60" x2="420" y1="${Y(k)}" y2="${Y(k)}" stroke="currentColor" stroke-opacity=".08"/>`;
+  [['ร้าน ก',96,C.o],['ร้าน ข',100,C.b]].forEach(([n,v,col],i)=>{const x=120+i*160;o+=`<rect x="${x}" y="${Y(v)}" width="90" height="${200-Y(v)}" rx="6" fill="${col}"/>${T(x+45,Y(v)-6,v,{b:1})}${T(x+45,218,n,{fs:13})}`});
+  if(cut)o+=`<path d="M52 196 l8 -6 l-8 -6" fill="none" stroke="${C.p}" stroke-width="2"/>`;
+  document.getElementById('ve44').innerHTML=svg(440,225,o,'กราฟเปรียบเทียบยอดขาย');
+  document.getElementById('ve44o').innerHTML=cut?'ดูเหมือนร้าน ข ขายได้ <b>มากกว่าหลายเท่า</b> ทั้งที่ต่างกันแค่ 4 ขวด (ประมาณ 4%)':'แกนเริ่มที่ 0 เห็นว่าสองร้าน <b>ขายใกล้เคียงกัน</b>'};document.getElementById('ve44c').onchange=up;up()})();
+examples('e44',[
+ {tag:'ตัดสินใจ',q:'สหกรณ์ขายขนมปังได้ จ.–ศ. = 20, 22, 18, 21, 40 ชิ้น ควรสั่งขนมปังวันศุกร์เพิ่มหรือไม่',s:['สังเกตว่าวันศุกร์ขายได้มากกว่าวันอื่นเกือบเท่าตัว','ควรดูข้อมูลหลายสัปดาห์ว่าวันศุกร์ขายดีทุกครั้งไหม ก่อนสรุป'],a:'แนวโน้มวันศุกร์ขายดี ควรสั่งเพิ่ม แต่ควรเก็บข้อมูลต่ออีก 2–3 สัปดาห์เพื่อยืนยัน'},
+ {tag:'กลุ่มตัวอย่าง',q:'โฆษณาบอกว่า “9 ใน 10 คนชอบยาสีฟันนี้” จากการถามคน 10 คนหน้าร้านของบริษัท เชื่อได้แค่ไหน',s:['กลุ่มตัวอย่างน้อยมาก (10 คน)','ถามหน้าร้านของบริษัทเอง ผู้ตอบอาจเป็นลูกค้าประจำ จึงลำเอียง'],a:'ยังเชื่อไม่ได้ ต้องสำรวจคนจำนวนมากและหลากหลายกว่านี้'},
+ {tag:'ใช้ร้อยละ',q:'ห้อง 1/1 มี 40 คน ส่งการบ้าน 32 คน · ห้อง 1/2 มี 25 คน ส่ง 22 คน ห้องไหนส่งการบ้านดีกว่า',s:['จำนวนคนต่างกัน ต้องเทียบเป็นร้อยละ','1/1: 32/40 × 100 = 80% · 1/2: 22/25 × 100 = 88%'],a:'ห้อง 1/2 ส่งการบ้านดีกว่า แม้จำนวนคนที่ส่งน้อยกว่า'}]);
+})();
+
+</script>
+<script>
 /* ===== ฝึกในคาบ (โจทย์สุ่ม ปรับระดับตามผู้เรียน) + ภารกิจ CER ในหน้าบทเรียน ===== */
 (function(){
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
