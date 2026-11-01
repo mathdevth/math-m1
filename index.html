@@ -2396,18 +2396,6 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:null};const r2=x=>Math.round(x*100)/100;
 const SELC_M1=[
 
-{id:'water',where:'b13',title:'น้ำหายไปไหน? — ร้อยละของน้ำที่ซึมลงพื้น',
- ccc:'เหตุและผล · สัดส่วน',
- ph:'หลังฝนตก ลานคอนกรีตหน้าเสาธงมีน้ำขัง แต่สนามหญ้าข้าง ๆ แทบไม่มีน้ำขัง',
- ask:'พื้นผิวชนิดไหนทำให้น้ำซึมได้มากที่สุด และมากกว่ากันกี่เปอร์เซ็นต์?',
- how:['เตรียมถาดขนาดเท่ากัน ใส่พื้นผิวต่างชนิด (ดิน หญ้า ทราย แผ่นกระเบื้อง/คอนกรีต)','เทน้ำถาดละ 100 mL เท่ากัน ด้วยความเร็วเท่ากัน','รอ 1 นาที แล้วตวงน้ำที่เหลือบนผิว/ไหลออกมา','กรอกในตาราง ระบบจะคิดร้อยละที่ซึมให้ ตรวจกับที่คิดเองในสมุด'],
- cols:['พื้นผิว','น้ำที่เท (mL)','น้ำที่เหลือบนผิว (mL)'],
- rows:[['ดิน','100',''],['สนามหญ้า','100',''],['ทราย','100',''],['คอนกรีต/กระเบื้อง','100','']],
- calc:rows=>rows.map(r=>{const a=num(r[1]),b=num(r[2]);return a&&b!=null&&b>=0&&b<=a?{x:r[0],y:r2((a-b)/a*100)}:null}).filter(Boolean),
- ylab:'ร้อยละของน้ำที่ซึม (%)',kind:'bar',
- sum:p=>{if(p.length<2)return'';const s=[...p].sort((a,b)=>b.y-a.y);return`ซึมมากที่สุด: <b>${esc(s[0].x)}</b> ${s[0].y}% · น้อยที่สุด: <b>${esc(s[s.length-1].x)}</b> ${s[s.length-1].y}% · ต่างกัน ${r2(s[0].y-s[s.length-1].y)} จุดเปอร์เซ็นต์`},
- codap:['ลากไฟล์ CSV ที่ดาวน์โหลดไปวางในหน้า CODAP จะได้ตาราง','ลากหัวคอลัมน์ "ร้อยละที่ซึม" ไปแกนตั้งของกราฟ และ "พื้นผิว" ไปแกนนอน','รวมข้อมูลทุกกลุ่มในห้อง แล้วดูว่าแต่ละพื้นผิวผลใกล้กันไหม'],
- limit:'การทดลองนี้บอกได้ว่าพื้นผิวไหนซึมน้ำได้ดีกว่า "ในถาด" แต่ยังบอกไม่ได้ว่าลานคอนกรีตเป็นสาเหตุเดียวของน้ำขังในโรงเรียน เพราะยังไม่ได้ดูความลาดชัน ท่อระบายน้ำ และปริมาณฝน'},
 {id:'roof',where:'d33',title:'น้ำฝนจากหลังคา — กราฟความสัมพันธ์เชิงเส้น',
  ccc:'รูปแบบ · ระบบและแบบจำลอง',
  ph:'โรงเรียนอยากรองน้ำฝนจากหลังคาโรงอาหารไว้รดต้นไม้หน้าแล้ง',
@@ -2434,8 +2422,227 @@ const SELC_M1=[
  codap:['ลากไฟล์ CSV ลงใน CODAP','ลาก "จุดวัด" ไปแกนนอน และ "อุณหภูมิ" ไปแกนตั้ง จะเห็นจุดสองกลุ่ม','เมนูไม้บรรทัด → เลือก Mean ดูเส้นค่าเฉลี่ยแต่ละกลุ่ม แล้วรวมข้อมูลทั้งห้องเทียบกัน'],
  limit:'ข้อมูลไม่กี่วันในโรงเรียนเดียวบอกได้ว่า "ที่นี่ ช่วงนี้" ใต้ต้นไม้เย็นกว่าแค่ไหน แต่ยังสรุปเรื่องโลกร้อนไม่ได้ ต้องใช้ข้อมูลหลายสิบปีจากหลายพื้นที่'}
 ];
-SELC_M1.push({id:'cerpre',test:1,where:'b11',title:'แบบวัดการอธิบายด้วยหลักฐาน (ก่อนเรียน)'},{id:'cerpost',test:1,where:'e44',title:'แบบวัดการอธิบายด้วยหลักฐาน (หลังเรียน)'});
 window.SELC1=KSelc({site:'m1',ctx:()=>window.M1DB?M1DB():{},place:w=>document.getElementById('t'+w),isT:c=>!!c.ISTEACHER,acts:SELC_M1});
+})();
+
+/* หน่วย PhBL ม.1 — ข้อมูลกลาง ใช้ร่วมกับเว็บ ใบงาน คู่มือครู และสไลด์ · ลิขสิทธิ์ครูคุ้ม */
+const PHBL1={
+id:'phbl1',site:'m1',
+name:'ลานหน้าเสาธงของเราน้ำขัง: จะเปลี่ยนพื้นตรงไหน กี่เปอร์เซ็นต์',
+subject:'คณิตศาสตร์พื้นฐาน ม.1 ภาคเรียนที่ 2 · บทที่ 1 อัตราส่วน สัดส่วน และร้อยละ',
+indicator:'ค 1.1 ม.1/3 เข้าใจและประยุกต์ใช้อัตราส่วน สัดส่วน และร้อยละ ในการแก้ปัญหาคณิตศาสตร์และปัญหาในชีวิตจริง',
+time:'8 บท 12 คาบ (คาบละ 50 นาที) ไม่นับเวลาเก็บข้อมูลนอกห้อง',
+phenomenon:'หลังฝนตก ลานคอนกรีตหน้าเสาธงมีน้ำขังจนเข้าแถวไม่ได้ แต่สนามหญ้าข้าง ๆ แทบไม่มีน้ำขัง ทั้งที่ฝนตกใส่เท่ากัน',
+question:'โรงเรียนควรเปลี่ยนพื้นลานหน้าเสาธงเป็นแบบไหน และต้องเปลี่ยนกี่เปอร์เซ็นต์ของพื้นที่ จึงจะลดน้ำขังได้จริง',
+product:'ข้อเสนอ 1 หน้าถึงผู้อำนวยการ: เลือกพื้นแบบใหม่และสัดส่วนพื้นที่ที่ควรเปลี่ยน พร้อมตัวเลขจากการทดลอง เหตุผล และสิ่งที่ข้อมูลยังบอกไม่ได้',
+data:'ข้อมูลทุกชุดนักเรียนวัดเอง: ขนาดลาน จำนวนช่องบนแผนผัง ปริมาณน้ำในการทดลองถาด ส่วนปริมาณฝนให้นักเรียนหาจากกรมอุตุนิยมวิทยาหรือวัดเองด้วยกระบอกวัดฝน ตัวเลขในคู่มือที่ติดป้าย "ตัวอย่าง" เป็นตัวเลขสมมุติสำหรับครู',
+lang:{1:['ฉันคิดว่า…','เพราะฉันเห็นว่า…','ฉันยังไม่แน่ใจเรื่อง…'],2:['ฉันคิดว่า…','ตัวเลขที่ทำให้ฉันคิดแบบนี้คือ…','ตัวเลขนี้เกี่ยวกับคำตอบเพราะ…'],3:['ฉันคิดว่า… (ข้อกล่าวอ้าง)','ตัวเลขที่ทำให้ฉันคิดแบบนี้… (หลักฐาน)','ตัวเลขนี้เกี่ยวกับคำตอบเพราะ… (เหตุผล)'],4:['C ข้อกล่าวอ้าง','E หลักฐาน — ตัวเลขจากข้อมูลอย่างน้อย 2 จุด','R เหตุผล — หลักคณิตศาสตร์ที่เชื่อมหลักฐานกับข้อกล่าวอ้าง']},
+langNote:{1:'ภาษาของนักเรียน ยังไม่พูดคำว่า CER',2:'ภาษาของนักเรียน + ชวนใช้ตัวเลข',3:'ครูตั้งชื่อ ข้อกล่าวอ้าง · หลักฐาน · เหตุผล คู่กับภาษาเดิม',4:'CER เต็มรูปแบบ + ข้อจำกัดของหลักฐาน'},
+lessons:[
+{n:1,where:'b11',periods:2,lv:1,title:'ปรากฏการณ์หลัก: ทำไมน้ำขังแค่บางที่',
+ knot:'ฝนตกใส่เท่ากัน ทำไมลานคอนกรีตน้ำขัง แต่สนามหญ้าไม่ขัง',
+ learn:'นักเรียนสังเกตและตั้งคำถามเอง ยังไม่ต้องใช้สูตร',
+ try:['เดินสำรวจลานหน้าเสาธงและสนามหญ้า (หรือดูภาพหลังฝนตก) วาดแผนผังคร่าว ๆ ว่าน้ำขังตรงไหน','จดสิ่งที่เห็น และสิ่งที่สงสัย อย่างน้อยคนละ 3 ข้อ','กลุ่มเขียนคำแนะนำเบื้องต้นถึงโรงเรียนว่าควรทำอย่างไร พร้อมเหตุผล'],
+ formal:'ยังไม่ตั้งชื่อเรื่องใหม่ ครูชวนจัดกลุ่มคำถามบน DQB เช่น เรื่องพื้นผิว เรื่องปริมาณฝน เรื่องท่อระบายน้ำ เรื่องพื้นที่',
+ stuck:'นักเรียนตอบทันทีว่า "เพราะคอนกรีตกันน้ำ" ครูถามต่อว่า "แล้วต้องเปลี่ยนเท่าไรถึงพอ จะรู้ได้อย่างไร"',
+ probe:['ถ้าเปลี่ยนพื้นทั้งลานเป็นหญ้า ยังเข้าแถวได้ไหม','เราต้องรู้อะไรบ้าง ถึงจะบอกได้ว่าเปลี่ยนเท่าไรพอ'],
+ out:'แผนผังน้ำขัง · คำแนะนำเบื้องต้น · คำถามบน DQB อย่างน้อยกลุ่มละ 2 ข้อ',
+ next:'ลานกับสนามหญ้ามีพื้นที่ต่างกันแค่ไหน จะเทียบอย่างไร'},
+{n:2,where:'b11',periods:1,lv:1,title:'พื้นแข็งกับพื้นเขียว ต่างกันแค่ไหน',
+ knot:'ลานใหญ่กว่าสนามหญ้า จะบอกว่า "พื้นแข็งเยอะกว่าพื้นเขียว" ด้วยตัวเลขอย่างไร',
+ learn:'อัตราส่วน a : b การเทียบปริมาณสองปริมาณ',
+ try:['ลงตารางกริดบนแผนผังบริเวณหน้าเสาธง (1 ช่อง = พื้นที่เท่ากัน) นับช่องพื้นแข็งและพื้นเขียว','แต่ละกลุ่มคิดวิธีบอกว่าพื้นแข็งมากกว่าพื้นเขียวแค่ไหน (ลบกัน? หารกัน? วาดรูป?)','เทียบวิธีของแต่ละกลุ่ม: วิธีไหนยังใช้ได้ถ้าเปลี่ยนขนาดช่องกริด'],
+ tool:{cols:['บริเวณ','ช่องพื้นแข็ง','ช่องพื้นเขียว'],rows:[['ลานหน้าเสาธง','',''],['ทั้งบริเวณหน้าอาคาร','','']],calc:'ratio2'},
+ formal:'อัตราส่วน: การเปรียบเทียบปริมาณสองปริมาณ เขียน a : b อ่านว่า a ต่อ b · อัตราส่วนที่เท่ากัน ได้จากการคูณหรือหารทั้งสองจำนวนด้วยจำนวนเดียวกันที่ไม่ใช่ศูนย์',
+ stuck:'ใช้ผลต่าง (แข็งมากกว่า 40 ช่อง) ซึ่งเปลี่ยนเมื่อเปลี่ยนขนาดกริด ครูให้ลองนับใหม่ด้วยกริดขนาดใหญ่ขึ้นสองเท่า',
+ probe:['ถ้าช่องกริดใหญ่ขึ้นสองเท่า ผลต่างยังเท่าเดิมไหม แล้วการหารล่ะ'],
+ out:'ตารางนับช่อง · ประโยคเปรียบเทียบที่ไม่ขึ้นกับขนาดกริด',
+ next:'นอกจากแข็งกับเขียว ยังมีพื้นแบบอื่นอีก จะเทียบสามแบบพร้อมกันอย่างไร'},
+{n:3,where:'b11',periods:1,lv:2,title:'เทียบพื้นสามแบบพร้อมกัน',
+ knot:'บริเวณหน้าอาคารมีทั้งคอนกรีต หญ้า และพื้นดิน/ทราย จะบอกส่วนแบ่งทั้งสามในประโยคเดียวอย่างไร',
+ learn:'อัตราส่วนของจำนวนหลาย ๆ จำนวน a : b : c',
+ try:['นับช่องพื้นแบบที่สาม (ดิน ทราย หรือบล็อกปูหญ้า) เพิ่ม','เขียนส่วนแบ่งของพื้นทั้งสามแบบ ลองให้เป็นจำนวนน้อยที่สุดที่ยังบอกส่วนแบ่งเดิม','ถ้ารู้แค่ คอนกรีต : หญ้า และ หญ้า : ดิน จะหาส่วนแบ่งทั้งสามได้ไหม'],
+ tool:{cols:['พื้น','จำนวนช่อง'],rows:[['คอนกรีต',''],['หญ้า',''],['ดิน/ทราย','']],calc:'ratio3'},
+ formal:'อัตราส่วนของจำนวนหลาย ๆ จำนวน a : b : c · การทำให้เป็นอัตราส่วนอย่างต่ำ · การรวม a : b กับ b : c โดยทำให้ b เท่ากัน',
+ stuck:'รวมอัตราส่วนสองคู่โดยไม่ทำพจน์กลางให้เท่ากัน',
+ probe:['ถ้า คอนกรีต : หญ้า = 3 : 1 และ หญ้า : ดิน = 2 : 1 ทำไมเขียน 3 : 1 : 1 ไม่ได้'],
+ out:'อัตราส่วนสามจำนวนของบริเวณจริง · ข้อค้นพบลง DQB',
+ next:'รู้แล้วว่าพื้นแข็งเยอะ แต่พื้นแต่ละแบบซึมน้ำได้ต่างกันจริงไหม ต่างแค่ไหน'},
+{n:4,where:'b11',periods:2,lv:2,title:'ทดลองถาด: น้ำหายไปไหน',
+ knot:'พื้นแต่ละแบบซึมน้ำได้ต่างกันแค่ไหน และจะเทียบได้อย่างไรเมื่อแต่ละกลุ่มเทน้ำไม่เท่ากัน',
+ learn:'อัตราส่วนที่เท่ากัน การเทียบด้วยฐานเดียวกัน (ปูทางสู่สัดส่วนและร้อยละ)',
+ try:['ใช้ถาดขนาดเท่ากัน ใส่ดิน หญ้า ทราย และแผ่นกระเบื้อง/คอนกรีต','เทน้ำ (บางกลุ่ม 100 mL บางกลุ่ม 150 mL ตามที่ครูแจก) รอ 1 นาที ตวงน้ำที่เหลือบนผิว','เทียบผลกับกลุ่มที่เทน้ำไม่เท่ากัน: กลุ่มไหนพื้นซึมน้ำดีกว่ากันจริง'],
+ tool:{cols:['พื้น','น้ำที่เท (mL)','น้ำที่เหลือบนผิว (mL)'],rows:[['ดิน','',''],['หญ้า','',''],['ทราย','',''],['คอนกรีต/กระเบื้อง','','']],calc:'soak'},
+ formal:'อัตราส่วน น้ำที่ซึม : น้ำที่เท · เทียบอัตราส่วนสองอัตราส่วนด้วยการทำให้ฐานเท่ากัน (เช่น คิดต่อน้ำ 100 mL)',
+ stuck:'เทียบจำนวน mL ที่ซึมตรง ๆ โดยไม่สนว่าเทน้ำไม่เท่ากัน',
+ probe:['กลุ่ม A ซึม 60 จาก 100 กลุ่ม B ซึม 84 จาก 150 พื้นของใครซึมดีกว่า'],
+ out:'ตารางผลทดลองทั้งห้อง · การเทียบด้วยฐานเดียวกัน',
+ next:'ผลในถาดเล็ก ๆ จะบอกอะไรเกี่ยวกับลานที่ใหญ่กว่าหลายพันเท่าได้บ้าง'},
+{n:5,where:'b12',periods:2,lv:3,title:'จากถาดสู่ลานจริง',
+ knot:'ถาดกว้าง 30 × 20 cm แต่ลานกว้างหลายร้อยตารางเมตร ถ้าฝนตกหนัก น้ำบนลานจะมากแค่ไหน',
+ learn:'สัดส่วน การแก้สัดส่วน และการนำไปใช้ · ครูตั้งชื่อ ข้อกล่าวอ้าง หลักฐาน เหตุผล',
+ try:['วัดขนาดลานหน้าเสาธงจริง (กว้าง × ยาว)','ความรู้ตั้งต้น: ฝน 1 มิลลิเมตร ตกบนพื้นที่ 1 ตารางเมตร ได้น้ำ 1 ลิตร · น้ำ 100 mL บนถาด 30 × 20 cm เท่ากับฝนประมาณ 1.67 mm','คิดเองก่อน: ฝนตก 20 mm น้ำตกลงบนลานกี่ลิตร และถ้าพื้นทั้งลานเป็นคอนกรีต น้ำเหลือบนผิวประมาณกี่ลิตร'],
+ tool:{cols:['รายการ','ค่า'],rows:[['ความกว้างลาน (m)',''],['ความยาวลาน (m)',''],['ปริมาณฝน (mm)',''],['ร้อยละที่คอนกรีตซึม (จากบท 4)','']],calc:'scale'},
+ formal:'สัดส่วน: ประโยคแสดงการเท่ากันของอัตราส่วนสองอัตราส่วน a/b = c/d · การแก้สัดส่วน · และครูชี้ว่าสามช่องที่เขียนมาตลอดคือ ข้อกล่าวอ้าง · หลักฐาน · เหตุผล',
+ stuck:'ใช้หน่วยไม่ตรงกัน (cm² กับ m², mL กับ L)',
+ probe:['ถาด 600 cm² เท่ากับกี่ m²','ถ้าลานใหญ่ขึ้นสองเท่า น้ำมากขึ้นกี่เท่า เพราะอะไร'],
+ out:'การคำนวณปริมาณน้ำบนลานจริง · คำอธิบายแบบมีชื่อสามส่วน',
+ next:'ตัวเลขซึมของพื้นแต่ละแบบยังเป็น "ส่วนต่อเท" อยู่ จะสื่อสารให้ผู้อำนวยการเข้าใจง่ายอย่างไร'},
+{n:6,where:'b13',periods:1,lv:3,title:'บอกเป็นร้อยละให้ทุกคนเข้าใจ',
+ knot:'ผู้อำนวยการถามว่า "หญ้าซึมน้ำดีกว่าคอนกรีตแค่ไหน และตอนนี้พื้นเขียวมีกี่ส่วนของลาน" จะตอบด้วยตัวเลขที่เข้าใจทันทีอย่างไร',
+ learn:'ร้อยละ การเปลี่ยนอัตราส่วนเป็นร้อยละ',
+ try:['เปลี่ยนผลบท 4 (น้ำซึม : น้ำเท) และผลบท 2–3 (ส่วนแบ่งพื้นที่) ให้เป็นค่าที่ฐานเป็น 100','เทียบว่าค่าแบบไหนอ่านง่ายกว่าสำหรับคนที่ไม่ได้ทดลอง'],
+ tool:{cols:['สิ่งที่อยากบอก','ส่วน','ทั้งหมด'],rows:[['หญ้าซึมน้ำ','',''],['คอนกรีตซึมน้ำ','',''],['พื้นเขียวในบริเวณ','','']],calc:'pct'},
+ formal:'ร้อยละ คือ อัตราส่วนที่จำนวนหลังเป็น 100 · a : b = (a/b × 100) : 100 · ร้อยละเปรียบเทียบ "มากกว่ากี่จุดเปอร์เซ็นต์"',
+ stuck:'สับสนระหว่าง "มากกว่า 50 จุดเปอร์เซ็นต์" กับ "มากกว่า 50%"',
+ probe:['หญ้าซึม 70% คอนกรีตซึม 10% หญ้าซึมมากกว่ากี่จุดเปอร์เซ็นต์ และมากกว่ากี่เท่า'],
+ out:'ตารางร้อยละ · ประโยคสื่อสารถึงผู้อำนวยการ',
+ next:'ถ้าเปลี่ยนคอนกรีตบางส่วนเป็นพื้นซึมน้ำ ต้องเปลี่ยนกี่เปอร์เซ็นต์ น้ำบนลานจึงลดลงครึ่งหนึ่ง'},
+{n:7,where:'b13',periods:2,lv:3,title:'เปลี่ยนกี่เปอร์เซ็นต์ถึงพอ',
+ knot:'โรงเรียนเปลี่ยนทั้งลานไม่ได้ (ยังต้องเข้าแถว) ต้องเปลี่ยนน้อยที่สุดกี่เปอร์เซ็นต์ น้ำบนลานจึงลดลงตามเป้าที่ห้องตั้ง',
+ learn:'การนำอัตราส่วน สัดส่วน ร้อยละ ไปใช้ในชีวิตจริง · การสร้างแบบจำลองอย่างง่าย',
+ try:['ห้องตกลงเป้าหมายร่วมกัน เช่น น้ำเหลือบนลานลดลงอย่างน้อยครึ่งหนึ่ง','ลองคิดเองทีละกรณี: เปลี่ยน 20% 40% 60% น้ำเหลือบนลานเท่าไร','หาค่าน้อยที่สุดที่ถึงเป้า แล้วตรวจกับแบบจำลองในเว็บ'],
+ tool:{cols:['รายการ','ค่า'],rows:[['พื้นที่ลาน (m²)',''],['ปริมาณฝน (mm)',''],['ร้อยละที่คอนกรีตซึม',''],['ร้อยละที่พื้นใหม่ซึม',''],['เป้า: น้ำเหลือไม่เกินกี่ % ของตอนนี้','']],calc:'model'},
+ formal:'น้ำเหลือบนลาน = น้ำฝนทั้งหมด × [ (ร้อยละพื้นเดิม × ร้อยละที่พื้นเดิมไม่ซึม) + (ร้อยละพื้นใหม่ × ร้อยละที่พื้นใหม่ไม่ซึม) ] · ใช้ร้อยละของร้อยละ',
+ stuck:'บวกร้อยละซึมของพื้นสองแบบตรง ๆ โดยไม่ถ่วงด้วยพื้นที่',
+ probe:['ถ้าเปลี่ยนพื้นครึ่งลาน น้ำจะลดลงครึ่งหนึ่งพอดีไหม เพราะอะไร'],
+ out:'ตารางกรณีที่ลองเอง · ร้อยละพื้นที่ที่เสนอให้เปลี่ยน',
+ next:'พร้อมเขียนข้อเสนอถึงผู้อำนวยการ ตัวเลขของเราเชื่อได้แค่ไหน และยังขาดข้อมูลอะไร'},
+{n:8,where:'b13',periods:1,lv:4,title:'ข้อเสนอถึงผู้อำนวยการ',
+ knot:'จะเขียนข้อเสนอที่ผู้อำนวยการเชื่อและนำไปใช้ได้อย่างไร และหลักฐานของเรายังบอกอะไรไม่ได้',
+ learn:'ใช้ CER เต็มรูปแบบ · ถ่ายโอนไปสถานการณ์ใหม่',
+ try:['เขียนข้อเสนอ 1 หน้า: เลือกพื้นแบบใหม่ ร้อยละพื้นที่ที่ควรเปลี่ยน ตัวเลขจากการทดลอง เหตุผล และข้อจำกัด','แลกกันอ่านกับอีกกลุ่ม ให้ข้อเสนอแนะตามรูบริก','ถ่ายโอน: ใช้วิธีเดียวกันกับลานจอดรถหรือหน้าบ้านของตัวเอง ต้องเปลี่ยนอะไรบ้าง'],
+ formal:'CER เต็มรูปแบบ + ข้อจำกัดของหลักฐาน · กลับไปเทียบกับคำแนะนำเบื้องต้นในบท 1',
+ stuck:'สรุปเกินหลักฐาน เช่น "เปลี่ยนแล้วน้ำจะไม่ขังอีกเลย"',
+ probe:['การทดลองในถาดยังไม่ได้คิดถึงอะไรบ้าง (ความลาดชัน ท่อระบายน้ำ ฝนตกต่อเนื่อง)','คำแนะนำของเราเปลี่ยนจากบท 1 อย่างไร หลักฐานไหนทำให้เปลี่ยน'],
+ out:'ข้อเสนอ 1 หน้า · การเทียบกับคำแนะนำเบื้องต้น · งานถ่ายโอน',
+ next:'นำเสนอผู้บริหาร / ส่งต่อให้สภานักเรียน'}
+],
+rubric:{C:['ไม่มีหรือไม่ตรงคำถาม','ตอบบางส่วน','ตอบตรงแต่ยังไม่ชัด','ตอบตรง ชัดเจน ครบ'],E:['ไม่มีหลักฐาน','อ้างข้อมูลแต่ไม่มีตัวเลข','มีตัวเลข 1 จุด หรือบางจุดไม่เกี่ยว','ตัวเลขถูกต้อง เกี่ยวข้อง อย่างน้อย 2 จุด'],R:['ไม่มีเหตุผล','ใช้ความรู้สึกหรือทวนหลักฐาน','เชื่อมหลักฐานกับข้อกล่าวอ้างด้วยหลักคณิต','เชื่อมชัด และบอกข้อจำกัดของหลักฐานได้']}
+};
+if(typeof module!=='undefined')module.exports=PHBL1;
+
+/* ===== หน่วย PhBL ม.1: เส้นเรื่อง · กระดานคำถาม DQB · การ์ดบทเรียน · ครูปลดล็อกการตั้งชื่อ · ภาษาไล่ระดับสู่ CER · ลิขสิทธิ์ครูคุ้ม ===== */
+(function(){
+const U=PHBL1;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:null};
+const r2=x=>Math.round(x*100)/100;const fmt=x=>r2(x).toLocaleString('th-TH');
+const gcd=(a,b)=>{a=Math.abs(Math.round(a));b=Math.abs(Math.round(b));while(b){[a,b]=[b,a%b]}return a||1};
+const ctx=()=>(window.M1DB?window.M1DB():{})||{};const isT=()=>!!ctx().ISTEACHER;
+const ts=()=>window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date();
+let OPEN=[];
+const css=document.createElement('style');css.textContent=`
+.pb{margin:0 0 18px;border-radius:22px;padding:18px 20px;border:2px solid #2f7de1;background:color-mix(in srgb,#2f7de1 6%,transparent);text-align:left!important}
+.pb *{text-align:left}.pb h2,.pb h3{margin:0 0 6px}.pb h2::before,.pb h2::after,.pb h3::before,.pb h3::after{content:none!important;display:none!important}
+.pb h2{font-size:21px}.pb h3{font-size:18px}
+.pb .pb-tg{display:inline-block!important;width:auto!important;font-size:12.5px;font-weight:700;border-radius:999px;padding:1px 10px;margin:0 4px 6px 0;background:#2f7de1;color:#fff}
+.pb .pb-tg.pb-o{background:#f2a33a;color:#1d1830}.pb .pb-tg.pb-g{background:#17a673}
+.pb .pb-q{font-size:17px;font-weight:600;margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f2a33a 16%,transparent);border-left:5px solid #f2a33a}
+.pb .pb-map{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}@media(max-width:700px){.pb .pb-map{grid-template-columns:1fr 1fr}}
+.pb .pb-map a{display:block;text-decoration:none;color:inherit;border-radius:12px;padding:8px 10px;border:1px solid color-mix(in srgb,currentColor 18%,transparent);font-size:14px;line-height:1.35;min-height:44px}
+.pb .pb-map a b{display:block;font-size:13px;color:#2f7de1}.pb .pb-map a.pb-op{border-color:#17a673;background:color-mix(in srgb,#17a673 9%,transparent)}
+.pb .pb-box{margin-top:12px;border-radius:14px;padding:10px 12px;background:color-mix(in srgb,currentColor 4%,transparent)}
+.pb .pb-box>b{display:block;margin-bottom:4px}
+.pb textarea,.pb input,.pb select{font:inherit;width:100%;box-sizing:border-box;border-radius:10px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit;padding:7px 9px;min-height:40px}
+.pb textarea{min-height:56px;display:block}.pb label{display:block!important;margin:6px 0 2px;font-size:14.5px}
+.pb .pb-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.pb button{font:inherit;min-height:42px;border-radius:12px;padding:7px 13px;cursor:pointer;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit}
+.pb button.pb-p{background:#2f7de1;border-color:#2f7de1;color:#fff;font-weight:600}.pb button.pb-s{min-height:34px;padding:3px 9px;font-size:13.5px}
+.pb table{width:100%;border-collapse:collapse;font-size:14.5px}.pb td,.pb th{padding:4px;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent)}
+.pb ol,.pb ul{margin:4px 0 0 20px;padding:0}.pb li{margin:2px 0}
+details.pb.ls{margin:0 0 12px;border-radius:16px;border:1.5px solid color-mix(in srgb,#2f7de1 45%,transparent);padding:4px 14px 12px;background:color-mix(in srgb,#2f7de1 4%,transparent)}
+details.pb.ls>summary{cursor:pointer;font-weight:700;padding:8px 0;min-height:40px}
+.pb .pb-lock{opacity:.8;font-size:14.5px;border:2px dashed color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:8px 10px}
+.pb .pb-formal{border:2px solid #17a673;border-radius:12px;padding:8px 10px;background:color-mix(in srgb,#17a673 8%,transparent)}
+.pb .pb-res{margin-top:6px;font-size:15px;display:block!important}.pb-res b{display:inline!important}.pb .pb-msg{font-size:14px;opacity:.85;margin-top:4px}
+.pb .pb-c1{color:#17a673}.pb .pb-c2{color:#2f7de1}.pb .pb-c3{color:#e07a1f}
+.pb .pb-dq{display:grid;gap:6px;margin-top:8px}.pb .pb-dq .pb-it{border-radius:12px;padding:8px 10px;border:1px solid color-mix(in srgb,currentColor 15%,transparent);display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.pb .pb-dq .pb-it.pb-pin{border-color:#f2a33a;background:color-mix(in srgb,#f2a33a 10%,transparent)}.pb .pb-dq .pb-it.pb-ans{opacity:.75}
+.pb .pb-dq small{opacity:.7}.pb .pb-grp{font-weight:700;margin-top:8px;font-size:14.5px}
+.pb .pb-tnote{font-size:13.5px;border-radius:10px;padding:6px 9px;background:color-mix(in srgb,#f2a33a 14%,transparent);margin-top:6px}`;document.head.appendChild(css);
+
+/* ---------- เครื่องคิด (แสดงผลหลังครูปลดล็อก) ---------- */
+const CALC={
+ ratio2:rows=>rows.filter(r=>num(r[1])>0&&num(r[2])>0).map(r=>{const a=num(r[1]),b=num(r[2]),g=gcd(a,b);return`${esc(r[0])}: แข็ง : เขียว = ${a} : ${b}${g>1&&Number.isInteger(a)&&Number.isInteger(b)?` = <b>${a/g} : ${b/g}</b>`:''} ≈ <b>${r2(a/b)} : 1</b>`}).join('<br>'),
+ ratio3:rows=>{const v=rows.map(r=>num(r[1]));if(v.some(x=>!(x>0)))return'';const g=v.reduce((a,b)=>gcd(a,b));return`${rows.map(r=>esc(r[0])).join(' : ')} = ${v.join(' : ')}${g>1&&v.every(Number.isInteger)?` = <b>${v.map(x=>x/g).join(' : ')}</b>`:''}`},
+ soak:rows=>rows.filter(r=>num(r[1])>0&&num(r[2])!=null&&num(r[2])>=0&&num(r[2])<=num(r[1])).map(r=>{const p=num(r[1]),s=p-num(r[2]);return`${esc(r[0])}: ซึม ${fmt(s)} จาก ${fmt(p)} mL → ซึม : เท = ${fmt(s)} : ${fmt(p)} = <b>${fmt(s/p*100)} : 100</b>`}).join('<br>'),
+ scale:rows=>{const w=num(rows[0][1]),l=num(rows[1][1]),mm=num(rows[2][1]),pc=num(rows[3][1]);if(!(w>0&&l>0&&mm>=0))return'';const A=w*l,L=A*mm;let s=`พื้นที่ลาน = ${fmt(w)} × ${fmt(l)} = <b>${fmt(A)} m²</b><br>ฝน ${fmt(mm)} mm → น้ำ = ${fmt(A)} × ${fmt(mm)} = <b>${fmt(L)} ลิตร</b> (1 mm บน 1 m² = 1 L)<br>เทียบถาด 0.06 m² ได้ ${fmt(0.06*mm*1000)} mL · ลานใหญ่กว่าถาด ${fmt(A/0.06)} เท่า`;if(pc!=null&&pc>=0&&pc<=100)s+=`<br>ถ้าทั้งลานเป็นคอนกรีตที่ซึม ${fmt(pc)}% → น้ำเหลือบนผิวประมาณ <b>${fmt(L*(1-pc/100))} ลิตร</b>`;return s},
+ pct:rows=>rows.filter(r=>num(r[1])!=null&&num(r[2])>0).map(r=>`${esc(r[0])}: ${fmt(num(r[1]))} : ${fmt(num(r[2]))} = <b>${fmt(num(r[1])/num(r[2])*100)}%</b>`).join('<br>'),
+ model:rows=>{const A=num(rows[0][1]),mm=num(rows[1][1]),ac=num(rows[2][1]),an=num(rows[3][1]),t=num(rows[4][1]);if(!(A>0&&mm>=0&&ac>=0&&ac<=100&&an>=0&&an<=100))return'';const W=A*mm,c=1-ac/100,n=1-an/100,cur=W*c;
+  let s=`น้ำฝนทั้งหมด ${fmt(W)} ลิตร · ตอนนี้ (คอนกรีตทั้งลาน) น้ำเหลือ <b>${fmt(cur)} ลิตร</b><table><tr><th>เปลี่ยนพื้น</th><th>น้ำเหลือบนลาน (ลิตร)</th><th>เทียบกับตอนนี้</th></tr>`;
+  for(let f=0;f<=100;f+=20){const v=W*((1-f/100)*c+(f/100)*n);s+=`<tr><td>${f}%</td><td>${fmt(v)}</td><td>${cur?fmt(v/cur*100)+'%':'–'}</td></tr>`}s+='</table>';
+  if(t!=null&&t>=0&&t<=100&&an>ac){const f=c*(1-t/100)/(c-n)*100;s+=f<=100?`เป้า: น้ำเหลือไม่เกิน ${fmt(t)}% ของตอนนี้ → ต้องเปลี่ยนพื้นอย่างน้อย <b>${fmt(Math.ceil(f*100)/100)}%</b> ของลาน`:`เป้า ${fmt(t)}% ทำไม่ได้แม้เปลี่ยนทั้งลาน (เปลี่ยนทั้งลานเหลือ ${fmt(n/c*100)}%)`}else if(an<=ac)s+='พื้นใหม่ต้องซึมน้ำได้มากกว่าคอนกรีต';return s}};
+const BLANK=['','',''];
+
+/* ---------- กระดาน DQB ---------- */
+let DQ=[],dqCls='';
+async function dqLoad(){const c=ctx();if(!c.DB||!c.U){DQ=[];return}try{DQ=await c.DB.q('dqb',[['unit','==',U.id]])}catch(e){DQ=null}}
+function dqHTML(){const c=ctx(),T=isT();if(!c.U)return'<p class="pb-msg">เข้าสู่ระบบเพื่อดูและเพิ่มคำถามบนกระดาน</p>';if(DQ===null)return'<p class="pb-msg">โหลดกระดานไม่ได้ (ครู: ตรวจว่า Publish firestore.rules ที่มี dqb แล้ว)</p>';
+ const myCls=c.ME&&c.ME.cls||'',classes=[...new Set(DQ.map(x=>x.cls).filter(Boolean))].sort();const cls=T?dqCls:myCls;
+ const L=DQ.filter(x=>x.status!=='hidden'&&(!cls||x.cls===cls));const g=(n,a)=>a.length?`<div class="pb-grp">${n} (${a.length})</div>`+a.map(it).join(''):'';
+ return(T?`<div class="pb-row"><select class="pb-dqc" aria-label="เลือกห้อง"><option value="">ทุกห้อง</option>${classes.map(x=>`<option ${x===dqCls?'selected':''}>${esc(x)}</option>`).join('')}</select></div>`:'')+
+  `<div class="pb-dq">${g('📌 ปักหมุดโดยครู',L.filter(x=>x.pin&&x.status!=='answered'))}${g('❓ ยังตามหาคำตอบ',L.filter(x=>!x.pin&&x.status!=='answered'))}${g('✅ ตอบได้แล้ว',L.filter(x=>x.status==='answered'))}${L.length?'':'<p class="pb-msg">ยังไม่มีคำถาม เริ่มเพิ่มคำถามแรกได้เลย</p>'}</div>`;
+ function it(x){return`<div class="pb-it ${x.pin?'pb-pin':''} ${x.status==='answered'?'pb-ans':''}" data-id="${esc(x.id)}"><div><div>${esc(x.q)}</div><small>${x.lesson?'จากบท '+esc(x.lesson)+' · ':''}${esc(x.cls||'')}${x.status==='answered'&&x.ansIn?' · ตอบได้ในบท '+esc(x.ansIn):''}${T?' · '+esc(x.name||''):''}</small></div>${T?`<div class="pb-row" style="margin:0"><button type="button" class="pb-s" data-a="pin">${x.pin?'เลิกปักหมุด':'ปักหมุด'}</button><select class="pb-s" data-a="ans" aria-label="ตอบได้ในบท" style="width:auto;min-height:34px"><option value="">ตอบได้ในบท…</option>${U.lessons.map(l=>`<option value="${l.n}" ${+x.ansIn===l.n?'selected':''}>บท ${l.n}</option>`).join('')}<option value="0">ยังไม่ได้ตอบ</option></select><button type="button" class="pb-s" data-a="hide" aria-label="ซ่อนคำถามนี้">ซ่อน</button></div>`:''}</div>`}}
+function dqBind(root){const c=ctx();const s=root.querySelector('.pb-dqc');if(s)s.onchange=()=>{dqCls=s.value;dqDraw()};
+ root.querySelectorAll('.pb-dq .pb-it').forEach(el=>{const id=el.dataset.id;el.querySelectorAll('[data-a]').forEach(b=>{const act=b.dataset.a,go=async d=>{try{await c.DB.set('dqb/'+id,d,true);Object.assign(DQ.find(x=>x.id===id),d);dqDraw()}catch(e){alert('บันทึกไม่ได้')}};
+  if(act==='pin')b.onclick=()=>go({pin:!DQ.find(x=>x.id===id).pin});if(act==='hide')b.onclick=()=>{if(confirm('ซ่อนคำถามนี้จากกระดาน?'))go({status:'hidden'})};if(act==='ans')b.onchange=()=>go(b.value&&b.value!=='0'?{status:'answered',ansIn:+b.value}:{status:'open',ansIn:null})})})}
+function dqDraw(){document.querySelectorAll('.pb-dqw').forEach(w=>{w.innerHTML=dqHTML();dqBind(w)})}
+async function dqAdd(q,lesson,msg){const c=ctx();q=String(q||'').trim().slice(0,200);if(!q)return;if(!c.DB||!c.U||!c.ME){msg.textContent='เข้าสู่ระบบก่อนจึงจะเพิ่มคำถามได้';return}
+ try{const d={unit:U.id,site:'m1',uid:c.U.uid,name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',q,lesson:lesson||null,status:'open',pin:false,time:ts()};const r=await c.DB.add('dqb',d);DQ=(DQ||[]).concat([{id:r&&r.id||String(Date.now()),...d}]);dqDraw();msg.textContent='เพิ่มคำถามบนกระดานแล้ว ✓'}catch(e){msg.textContent='เพิ่มไม่สำเร็จ ลองใหม่อีกครั้ง'}}
+
+/* ---------- แผงเส้นเรื่อง ---------- */
+function panel(){const L=document.getElementById('tb11');if(!L||L.querySelector('.pb-main'))return;const s=document.createElement('section');s.className='pb pb-main';s.id='pbMain';
+ s.innerHTML=`<div><span class="pb-tg">PhBL · เส้นเรื่องของหน่วย</span><span class="pb-tg pb-g">STEM·SELC</span></div><h2>🌧️ ${esc(U.name)}</h2>
+ <p style="margin:0">${esc(U.phenomenon)}</p><div class="pb-q">คำถามของหน่วย: ${esc(U.question)}</div>
+ <p class="pb-msg" style="margin:0"><b>ปลายหน่วย:</b> ${esc(U.product)}</p>
+ <div class="pb-map">${U.lessons.map(l=>`<a href="#pbL${l.n}" class="${OPEN.includes(l.n)?'pb-op':''}" data-go="${l.n}"><b>บท ${l.n} · ${l.periods} คาบ</b>${esc(l.title)}</a>`).join('')}</div>
+ <div class="pb-box"><b>🗂️ กระดานคำถามของห้อง (Driving Question Board)</b><p class="pb-msg" style="margin:0 0 6px">คำถามที่เราอยากรู้เพื่อตอบคำถามของหน่วย ทุกบทจะกลับมาดูว่าตอบข้อไหนได้แล้ว และมีคำถามใหม่อะไรเพิ่ม</p>
+ <div class="pb-row"><input class="pb-dqi" maxlength="200" placeholder="พิมพ์คำถามของเรา เช่น ลานกว้างเท่าไร / ท่อระบายน้ำอยู่ตรงไหน" aria-label="คำถามใหม่"><button type="button" class="pb-p pb-dqb">เพิ่มคำถาม</button></div><p class="pb-msg pb-dqm"></p><div class="pb-dqw"></div></div>`;
+ L.prepend(s);s.querySelector('.pb-dqb').onclick=()=>{const i=s.querySelector('.pb-dqi');dqAdd(i.value,null,s.querySelector('.pb-dqm')).then(()=>{i.value=''})};
+ s.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();go(+a.dataset.go)})}
+function go(n){const l=U.lessons.find(x=>x.n===n);const tab=document.getElementById('tab'+l.where);if(tab&&document.getElementById('t'+l.where).hidden)tab.click();setTimeout(()=>{const d=document.getElementById('pbL'+n);if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}},120)}
+function banner(where){const L=document.getElementById('t'+where);if(!L||L.querySelector('.pb-ban'))return;const s=document.createElement('section');s.className='pb pb-ban';
+ s.innerHTML=`<div><span class="pb-tg">PhBL · ต่อเส้นเรื่อง</span></div><h3>🌧️ ${esc(U.name)}</h3><p class="pb-msg" style="margin:0">${esc(U.question)}</p><div class="pb-row"><button type="button" class="pb-back">ดูเส้นเรื่องและกระดานคำถาม</button></div>`;
+ L.prepend(s);s.querySelector('.pb-back').onclick=()=>{document.getElementById('tabb11').click();setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)}}
+
+/* ---------- การ์ดบทเรียน ---------- */
+const lkey=n=>{const c=ctx();return'pb1-'+(c.U&&c.U.uid||'guest')+'-'+n};
+const load=n=>{try{return JSON.parse(localStorage.getItem(lkey(n))||'null')}catch(e){return null}};
+const saveL=(n,st)=>{try{localStorage.setItem(lkey(n),JSON.stringify(st))}catch(e){}};
+function card(l){const host=document.getElementById('t'+l.where);if(!host||host.querySelector('#pbL'+l.n))return;
+ let st=load(l.n)||{rows:l.tool?l.tool.rows.map(r=>r.slice()):[]};const lab=U.lang[l.lv],open=OPEN.includes(l.n),T=isT();
+ const F=(k,t,cl)=>`<label for="pb${l.n}${k}" class="${cl||''}">${esc(t)}</label><textarea id="pb${l.n}${k}" data-k="${k}">${esc(st[k]||'')}</textarea>`;
+ const d=document.createElement('details');d.className='pb ls';d.id='pbL'+l.n;
+ d.innerHTML=`<summary>บท ${l.n} · ${esc(l.title)} <span class="pb-tg ${open?'pb-g':'pb-o'}" style="margin-left:6px">${open?'ครูเปิดการตั้งชื่อแล้ว':'ลองเองก่อน'}</span></summary>
+ <div class="pb-q">ปมของบทนี้: ${esc(l.knot)}</div>
+ <div class="pb-box"><b>1) ทบทวน</b>ย้อนดูกระดานคำถาม ข้อไหนเกี่ยวกับบทนี้ <button type="button" class="pb-s pb-show">เปิดกระดาน</button></div>
+ <div class="pb-box"><b>2) ลองเอง (ยังไม่ต้องใช้สูตร)</b><ol>${l.try.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+ ${l.tool?`<div style="overflow-x:auto;margin-top:8px"><table><tr>${l.tool.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr><tbody class="pb-tb">${st.rows.map((r,i)=>`<tr>${l.tool.cols.map((c,j)=>`<td>${j===0&&l.tool.rows[i]&&l.tool.rows[i][0]?esc(r[0]):`<input ${j?'type="number" step="any" inputmode="decimal"':''} data-i="${i}" data-j="${j}" value="${esc(r[j]??'')}" aria-label="${esc(c)} แถว ${i+1}">`}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:''}
+ ${F('method','วิธีคิดของกลุ่มเรา (เขียนหรืออธิบายวิธีที่คิดเอง)')}</div>
+ <div class="pb-box"><b>3–4) นำเสนอ เทียบวิธี แล้วครูตั้งชื่อ</b>${open||T?`<div class="pb-formal"><b>สิ่งที่เราเพิ่งค้นพบ มีชื่อเรียกว่า</b><br>${esc(l.formal)}</div>${l.tool?`<div class="pb-res pb-res"></div>`:''}`:`<div class="pb-lock">🔒 ครูจะเปิดส่วนนี้หลังทุกกลุ่มลองเองและนำเสนอแล้ว${l.tool?' (รวมถึงผลคำนวณอัตโนมัติ)':''}</div>`}
+ ${T?`<div class="pb-row"><button type="button" class="pb-s pb-unlock">${open?'🔒 ปิดการตั้งชื่ออีกครั้ง':'🔓 ปลดล็อกการตั้งชื่อ (ครู)'}</button><span class="pb-msg">ครูเท่านั้นที่เห็นปุ่มนี้</span></div><div class="pb-tnote"><b>ครูระวัง:</b> ${esc(l.stuck)}<br><b>คำถามกระตุ้น:</b> ${l.probe.map(esc).join(' · ')}</div>`:''}</div>
+ <div class="pb-box"><b>5) อธิบายและตั้งคำถามถัดไป</b>${l.lv>=3?`<p class="pb-msg" style="margin:0">${esc(U.langNote[l.lv])}</p>`:''}
+ ${F('C',lab[0],'pb-c1')}${F('E',lab[1],'pb-c2')}${F('R',lab[2],'pb-c3')}${l.lv>=4?F('lim','หลักฐานของเรายังบอกอะไรไม่ได้'):''}
+ ${F('find','ข้อค้นพบของบทนี้ใน 1 ประโยค')}
+ <label for="pb${l.n}nq">คำถามใหม่ที่เกิดขึ้น (จะขึ้นบนกระดาน)</label><div class="pb-row" style="margin-top:0"><input id="pb${l.n}nq" class="pb-nq" maxlength="200" placeholder="${esc(l.next)}"><button type="button" class="pb-s pb-nqb">ส่งขึ้นกระดาน</button></div>
+ <div class="pb-row"><button type="button" class="pb-p pb-send">ส่งงานบทนี้ให้ครู</button></div><p class="pb-msg pb-msg"></p></div>`;
+ const after=l.n===1?host.querySelector('#pbMain'):[...host.querySelectorAll('details.pb.ls')].pop()||host.querySelector('.pb-ban');if(after)after.after(d);else host.prepend(d);
+ const draw=()=>{const r=d.querySelector('.pb-res');if(r&&l.tool)r.innerHTML=CALC[l.tool.calc](st.rows)||'<span class="pb-msg">กรอกข้อมูลในตารางให้ครบ แล้วผลจะขึ้นที่นี่</span>';saveL(l.n,st)};draw();
+ const tb=d.querySelector('.pb-tb');if(tb)tb.addEventListener('input',e=>{const t=e.target;if(t.dataset.i==null)return;st.rows[+t.dataset.i][+t.dataset.j]=t.value;draw()});
+ d.querySelectorAll('textarea[data-k]').forEach(t=>t.oninput=()=>{st[t.dataset.k]=t.value;saveL(l.n,st)});
+ d.querySelector('.pb-show').onclick=()=>{document.getElementById('tabb11').click();setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)};
+ const msg=d.querySelector('.pb-msg');d.querySelector('.pb-nqb').onclick=()=>{const i=d.querySelector('.pb-nq');dqAdd(i.value,l.n,msg).then(()=>{i.value=''})};
+ const ub=d.querySelector('.pb-unlock');if(ub)ub.onclick=async()=>{const c=ctx();const nx=OPEN.includes(l.n)?OPEN.filter(x=>x!==l.n):OPEN.concat([l.n]);try{await c.DB.set('settings/m1phbl',{open:nx},true);OPEN=nx;rebuild()}catch(e){alert('บันทึกไม่ได้')}};
+ d.querySelector('.pb-send').onclick=async()=>{const c=ctx();if(!(st.C&&st.E)){msg.textContent='เขียนช่องอธิบายอย่างน้อย 2 ช่องแรกก่อนส่งนะ';return}if(!c.DB||!c.U||!c.ME){msg.textContent='เข้าสู่ระบบก่อนจึงจะส่งได้ (งานยังเก็บไว้ในเครื่อง)';return}msg.textContent='กำลังส่ง…';
+  try{await c.DB.set('selc/'+c.U.uid+'_m1_phbl1-L'+l.n,{uid:c.U.uid,sid:c.ME.sid||'',name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',site:'m1',act:'phbl1-L'+l.n,title:'บท '+l.n+' '+l.title,lv:l.lv,method:st.method||'',C:st.C||'',E:st.E||'',R:st.R||'',lim:st.lim||'',find:st.find||'',pre:st.method||'',rows:JSON.stringify(st.rows||[]),time:ts()},true);msg.textContent='ส่งให้ครูแล้ว ✓ แก้แล้วส่งซ้ำได้'}catch(e){msg.textContent='ส่งไม่สำเร็จ ลองใหม่อีกครั้ง (งานยังเก็บไว้ในเครื่อง)'}}}
+
+function rebuild(){document.querySelectorAll('.pb').forEach(x=>x.remove());build()}
+function build(){panel();['b12','b13'].forEach(banner);U.lessons.forEach(l=>{try{card(l)}catch(e){console.error('phbl',l.n,e)}});dqDraw()}
+async function init(){const c=ctx();try{const s=c.DB&&c.DB.get?await c.DB.get('settings/m1phbl'):null;OPEN=(s&&s.open)||[]}catch(e){OPEN=[]}await dqLoad();rebuild()}
+setTimeout(init,400);
+let lu='';setInterval(()=>{const c=ctx(),k=(c.U&&c.U.uid||'')+(c.ISTEACHER?'T':'')+(c.DB?'D':'');if(k!==lu){lu=k;init()}},1500);
+window.PHBL1UI={CALC,init};
 })();
 
 </script>
