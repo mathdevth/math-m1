@@ -939,9 +939,9 @@ const FILES={"1-1": "m1-t1-u1.pdf", "1-2": "m1-t1-u2.pdf", "1-3": "m1-t1-u3.pdf"
  /* --- ตั้งค่าจาก config.json --- */
  fetch('config.json',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(j=>{Object.assign(CFG,j);counter()}).catch(()=>{});
  /* --- ตัวนับผู้เข้าชม (GoatCounter) --- */
- function counter(){const g=(CFG.goatcounter||'').trim();if(!/^[a-z0-9-]+$/.test(g))return;
+ function counter(){const g=(CFG.goatcounter||'mathdevth').trim();if(!/^[a-z0-9-]+$/.test(g))return;
   window.goatcounter={no_onload:true};const s=document.createElement('script');s.async=true;s.dataset.goatcounter=`https://${g}.goatcounter.com/count`;s.src='https://gc.zgo.at/count.js';
-  s.onload=()=>{const send=p=>{try{window.goatcounter.count({path:p})}catch(e){}};send(location.pathname);TOPICS.forEach(x=>$('tab'+x).addEventListener('click',()=>send('/topic/'+x)))};document.head.appendChild(s);
+  s.onload=()=>{const send=p=>{try{window.goatcounter.count({path:p})}catch(e){}};send(location.pathname);TOPICS.forEach(x=>$('tab'+x).addEventListener('click',()=>send('/m1/topic/'+x)))};document.head.appendChild(s);
   fetch(`https://${g}.goatcounter.com/counter/TOTAL.json`).then(r=>r.ok?r.json():null).then(j=>{if(!j)return;const f=document.querySelector('footer');const p=document.createElement('span');p.className='vc';p.textContent=`ผู้เข้าชมทั้งหมด ${j.count} ครั้ง`;f.appendChild(p)}).catch(()=>{})}
  /* --- โหมดฉายหน้าห้อง --- */
  const pb=document.createElement('button');pb.type='button';pb.id='projBtn';pb.textContent='โหมดฉาย';pb.setAttribute('aria-pressed','false');$('bar').insertBefore(pb,$('sib'));
@@ -2083,5 +2083,342 @@ return{book,advise,fab,_load:load};
  title:c=>{const m=META.find(x=>x.c===c);return m&&has(c)?m.n+' '+m.t:null},drill:(c,g)=>window.M1Drill(c,{goal:g}),
  unitTopics:(t,u)=>META.filter(m=>m.term==t&&m.u==u).map(m=>m.c)});
  addEventListener('m1testdone',()=>{const L=window.M1LAST;if(L)P.advise({type:L.type,score:L.score,total:L.total,term:L.term,unit:L.unit})});window.M1Plus=P})();
+</script>
+<script>
+/* ===== เห็นภาพ + ตัวอย่างหลากหลาย (ภาคเรียนที่ 1) — ภาพวาดด้วยโค้ด ลิขสิทธิ์ครูคุ้ม ===== */
+(function(){
+const C={b:'#2f7de1',p:'#e0558f',g:'#17a673',o:'#f2a33a',v:'#7c5ce0',t:'#14a3b8'};
+const f2=x=>(+x).toLocaleString('th-TH',{maximumFractionDigits:4});
+const mn=x=>String(x).replace(/^-/,'−');
+const svg=(w,h,inner,lab)=>`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${lab||'ภาพประกอบ'}">${inner}</svg>`;
+const T=(x,y,s,o)=>`<text x="${x}" y="${y}" font-size="${(o&&o.fs)||14}" fill="${(o&&o.c)||'currentColor'}" text-anchor="${(o&&o.a)||'middle'}" ${o&&o.b?'font-weight="700"':''}>${s}</text>`;
+function anchorOf(L){return [...L.querySelectorAll('section')].find(x=>/แนวคิด|ความหมาย/.test(x.textContent.slice(0,40)))||L.querySelector('.dlbar')||L.querySelector('.lead')}
+const sec=(c,html)=>{const L=document.getElementById('t'+c);if(!L)return null;const s=document.createElement('section');s.className='vz';s.innerHTML=html;anchorOf(L).after(s);return s};
+function memo(c,html){const L=document.getElementById('t'+c);if(!L)return;const s=document.createElement('section');s.className='vz';s.innerHTML=`<div class="memo" style="margin-top:0"><b>จำง่าย:</b> ${html}</div>`;anchorOf(L).after(s)}
+function examples(c,list){const L=document.getElementById('t'+c);if(!L)return;const s=document.createElement('section');s.className='vx';
+ s.innerHTML=`<h2>ตัวอย่างหลากหลาย</h2><p class="lead" style="text-align:left">ลองคิดเองก่อน แล้วกด “ขั้นต่อไป” ดูวิธีคิดทีละขั้น</p>`+list.map((e,i)=>`<div class="ex"><div class="h"><b>ตัวอย่างที่ ${i+1}</b><span class="tg">${e.tag}</span></div><div style="margin-top:6px">${e.q}</div><ol>${e.s.map(x=>`<li hidden>${x}</li>`).join('')}</ol><p class="fin" hidden>${e.a}</p><div class="ans" style="justify-content:flex-start"><button type="button" class="nx">ขั้นต่อไป</button><button type="button" class="al">ดูทั้งหมด</button></div></div>`).join('');
+ const after=L.querySelector('.vz:last-of-type')||anchorOf(L);const vzs=[...L.querySelectorAll('section.vz')];(vzs.length?vzs[vzs.length-1]:anchorOf(L)).after(s);
+ s.querySelectorAll('.ex').forEach(ex=>{const li=[...ex.querySelectorAll('li')],fin=ex.querySelector('.fin');let k=0;const up=()=>{li.forEach((x,i)=>x.hidden=i>=k);fin.hidden=k<li.length;ex.querySelector('.nx').disabled=k>=li.length};ex.querySelector('.nx').onclick=()=>{k++;up()};ex.querySelector('.al').onclick=()=>{k=li.length;up()};up()})}
+const $i=id=>document.getElementById(id);
+
+/* ---------- 1.1–1.3 จำนวนเต็ม ---------- */
+memo('a11','จำนวนเต็มบวก อยู่ขวาของ 0 · จำนวนเต็มลบ อยู่ซ้ายของ 0 · <u>ยิ่งไปทางขวายิ่งมาก</u> ดังนั้น −2 > −5 · ค่าสัมบูรณ์ = ระยะห่างจาก 0 จึงไม่เป็นลบ เช่น |−7| = 7');
+examples('a11',[
+ {tag:'อุณหภูมิ',q:'ตอนเช้าบนดอยอุณหภูมิ −3 °C ส่วนในเมือง 4 °C ที่ไหนหนาวกว่า และต่างกันกี่องศา',s:['บนเส้นจำนวน −3 อยู่ซ้ายของ 4 จึงน้อยกว่า แปลว่าหนาวกว่า','ระยะจาก −3 ถึง 0 คือ 3 และจาก 0 ถึง 4 คือ 4 รวม 3 + 4'],a:'บนดอยหนาวกว่า ต่างกัน 7 องศา'},
+ {tag:'เรียงลำดับ',q:'เรียงจากน้อยไปมาก: 3, −8, 0, −1, 5',s:['จำนวนลบน้อยกว่า 0 และลบที่ค่าสัมบูรณ์มากกว่าจะน้อยกว่า: −8 < −1','ต่อด้วย 0 แล้วจำนวนบวก 3 < 5'],a:'−8, −1, 0, 3, 5'},
+ {tag:'ค่าสัมบูรณ์',q:'จำนวนใดบ้างมีค่าสัมบูรณ์เท่ากับ 6',s:['ค่าสัมบูรณ์คือระยะห่างจาก 0','จำนวนที่ห่างจาก 0 เท่ากับ 6 มีทั้งทางขวาและทางซ้าย'],a:'6 และ −6'}]);
+
+/* ---------- 1.4 บวกและลบ: เส้นจำนวน ---------- */
+(function(){const s=sec('a14',`<h2>เห็นภาพ: เดินบนเส้นจำนวน</h2><div class="vrow"><div id="va14"></div><div class="vctl">
+ <label>เริ่มที่ a = <b id="va14a">−3</b><input type="range" id="va14r" min="-8" max="8" value="-3"></label>
+ <label>บวกด้วย b = <b id="va14b">5</b><input type="range" id="va14s" min="-8" max="8" value="5"></label>
+ <p class="big" id="va14o"></p><p class="note2">บวกจำนวนบวก เดินไปทางขวา · บวกจำนวนลบ เดินไปทางซ้าย · ลบด้วย b ก็คือบวกด้วยจำนวนตรงข้ามของ b</p></div></div>
+ <div class="memo"><b>จำง่าย:</b> เครื่องหมายเหมือนกัน <u>บวกค่าสัมบูรณ์</u> ใส่เครื่องหมายเดิม · เครื่องหมายต่างกัน <u>เอามากลบน้อย</u> ใส่เครื่องหมายของตัวที่ค่าสัมบูรณ์มากกว่า · a − b = a + (−b)</div>`);if(!s)return;
+ const up=()=>{const a=+$i('va14r').value,b=+$i('va14s').value,r=a+b;$i('va14a').textContent=mn(a);$i('va14b').textContent=mn(b);
+  const X=v=>240+v*13.5;let o=`<line x1="20" y1="110" x2="460" y2="110" stroke="currentColor"/>`;
+  for(let k=-16;k<=16;k++)o+=`<line x1="${X(k)}" y1="${k%5?106:102}" x2="${X(k)}" y2="${k%5?114:118}" stroke="currentColor" stroke-opacity="${k%5?.5:1}"/>`+(k%4===0?T(X(k),136,mn(k),{fs:12}):'');
+  const col=b>=0?C.g:C.p;o+=`<path d="M${X(a)} 100 Q ${(X(a)+X(r))/2} ${100-Math.min(70,Math.abs(b)*8+20)} ${X(r)} 100" fill="none" stroke="${col}" stroke-width="3.5"/><circle cx="${X(a)}" cy="110" r="7" fill="${C.b}"/><circle cx="${X(r)}" cy="110" r="8" fill="${col}"/>`+T(X(a),90,'เริ่ม',{fs:12,c:C.b})+T(X(r),156,'ได้ '+mn(r),{fs:13,c:col,b:1});
+  $i('va14').innerHTML=svg(480,170,o,'เส้นจำนวน');$i('va14o').innerHTML=`${mn(a)} + (${mn(b)}) = <b>${mn(r)}</b><br><span style="font-size:15px">เดินไปทาง${b>=0?'ขวา':'ซ้าย'} ${Math.abs(b)} ช่อง</span>`};
+ ['va14r','va14s'].forEach(i=>$i(i).oninput=up);up()})();
+examples('a14',[
+ {tag:'ลิฟต์',q:'ลิฟต์อยู่ชั้นใต้ดิน B2 (แทนด้วย −2) ขึ้นไป 7 ชั้น จะอยู่ชั้นใด',s:['−2 + 7 เครื่องหมายต่างกัน นำ 7 − 2 = 5','7 มีค่าสัมบูรณ์มากกว่า ใส่เครื่องหมายบวก'],a:'ชั้น 5'},
+ {tag:'การเงิน',q:'มีเงิน 50 บาท ซื้อขนม 80 บาท โดยยืมเพื่อนส่วนที่ขาด ตอนนี้มีเงินสุทธิเท่าใด',s:['50 − 80 = 50 + (−80)','เครื่องหมายต่างกัน 80 − 50 = 30 ใส่เครื่องหมายของ −80'],a:'−30 บาท (ติดหนี้เพื่อน 30 บาท)'},
+ {tag:'ลบจำนวนลบ',q:'หาค่า (−4) − (−9)',s:['ลบด้วย −9 คือบวกด้วยจำนวนตรงข้าม 9','(−4) + 9 = 5'],a:'5'}]);
+
+/* ---------- 1.5 คูณและหาร ---------- */
+memo('a15','เครื่องหมาย <u>เหมือนกัน ได้บวก</u> · <u>ต่างกัน ได้ลบ</u> (ใช้ทั้งคูณและหาร) · นับจำนวนตัวลบ: ลบเป็นจำนวนคู่ ผลบวก ลบเป็นจำนวนคี่ ผลลบ · หารด้วย 0 ไม่ได้');
+examples('a15',[
+ {tag:'น้ำหนัก',q:'ปลาโลมาดำน้ำลงลึก 4 เมตรทุกวินาที (−4) ผ่านไป 6 วินาที ระดับเปลี่ยนไปเท่าใด',s:['6 × (−4) เครื่องหมายต่างกัน ผลเป็นลบ','6 × 4 = 24'],a:'−24 เมตร (ลึกลงไป 24 เมตร)'},
+ {tag:'หลายตัว',q:'หาค่า (−2) × (−3) × (−5)',s:['มีจำนวนลบ 3 ตัว (คี่) ผลเป็นลบ','2 × 3 × 5 = 30'],a:'−30'},
+ {tag:'หาร',q:'หาค่า (−72) ÷ (−8)',s:['เครื่องหมายเหมือนกัน ผลเป็นบวก','72 ÷ 8 = 9'],a:'9'}]);
+
+/* ---------- 1.6–1.7 สมบัติ ---------- */
+memo('a16','<u>สลับที่</u> a + b = b + a, a × b = b × a · <u>เปลี่ยนกลุ่ม</u> (a + b) + c = a + (b + c) · <u>แจกแจง</u> a × (b + c) = a × b + a × c ใช้คิดเลขเร็ว · การลบและการหาร <b>ไม่มี</b>สมบัติการสลับที่');
+examples('a16',[
+ {tag:'คิดเร็ว',q:'หาค่า 25 × (−17) × 4 โดยไม่ใช้เครื่องคิดเลข',s:['สลับที่ให้ 25 × 4 อยู่ด้วยกัน = 100','100 × (−17) = −1,700'],a:'−1,700'},
+ {tag:'แจกแจง',q:'หาค่า 98 × 15',s:['98 = 100 − 2','15 × 100 − 15 × 2 = 1,500 − 30'],a:'1,470'},
+ {tag:'ตรวจสมบัติ',q:'8 − 3 กับ 3 − 8 เท่ากันหรือไม่',s:['8 − 3 = 5','3 − 8 = −5'],a:'ไม่เท่ากัน การลบไม่มีสมบัติการสลับที่'}]);
+
+/* ---------- 2.1–2.2 เศษส่วนและทศนิยม: แถบ ---------- */
+(function(){const s=sec('a21',`<h2>เห็นภาพ: เศษส่วนบนแถบ และทศนิยมที่ได้</h2><div class="vrow"><div id="va21"></div><div class="vctl">
+ <label>ตัวเศษ <b id="va21n">3</b><input type="range" id="va21r" min="1" max="11" value="3"></label>
+ <label>ตัวส่วน <b id="va21d">8</b><input type="range" id="va21s" min="2" max="12" value="8"></label>
+ <p class="big" id="va21o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> เศษส่วน = ตัวเศษ ÷ ตัวส่วน · เมื่อทำเป็นเศษส่วนอย่างต่ำแล้ว ตัวส่วนมีตัวประกอบเฉพาะแค่ 2 กับ 5 → <u>ทศนิยมรู้จบ</u> · มีตัวประกอบอื่น เช่น 3, 7 → <u>ทศนิยมซ้ำ</u> · บวกลบต้องทำตัวส่วนให้เท่ากันก่อน</div>`);if(!s)return;
+ const up=()=>{const n=+$i('va21r').value,d=+$i('va21s').value;$i('va21n').textContent=n;$i('va21d').textContent=d;const W=440,w=W/d;let o='';
+  const whole=Math.floor(n/d),rem=n%d;for(let r=0;r<=whole;r++){const k=r<whole?d:rem;if(r===whole&&rem===0)break;for(let i=0;i<d;i++)o+=`<rect x="${20+i*w}" y="${20+r*40}" width="${w-2}" height="30" rx="4" fill="${i<k?C.b:'currentColor'}" fill-opacity="${i<k?.85:.08}"/>`}
+  const rows=Math.max(1,whole+(rem?1:0));let q=d;while(q%2===0)q/=2;while(q%5===0)q/=5;const g=(a,b)=>b?g(b,a%b):a;const dd=d/g(n,d);let qq=dd;while(qq%2===0)qq/=2;while(qq%5===0)qq/=5;
+  $i('va21').innerHTML=svg(480,30+rows*40,o,'แถบเศษส่วน');const dec=n/d;
+  $i('va21o').innerHTML=`${n}/${d} = ${n} ÷ ${d} = <b>${qq===1?f2(dec):dec.toFixed(6).replace(/0+$/,'')+'…'}</b><br><span style="font-size:15px">${qq===1?'ทศนิยมรู้จบ':'ทศนิยมซ้ำ (ไม่รู้จบ)'} · ${g(n,d)>1?`อย่างต่ำ = ${n/g(n,d)}/${d/g(n,d)}`:'เป็นเศษส่วนอย่างต่ำแล้ว'}</span>`};
+ ['va21r','va21s'].forEach(i=>$i(i).oninput=up);up()})();
+examples('a21',[
+ {tag:'สูตรขนม',q:'สูตรใช้แป้ง 3/4 ถ้วย และน้ำตาล 2/3 ถ้วย รวมกี่ถ้วย',s:['ตัวส่วน 4 และ 3 ค.ร.น. คือ 12','3/4 = 9/12 และ 2/3 = 8/12','9/12 + 8/12 = 17/12'],a:'17/12 ถ้วย หรือ 1 5/12 ถ้วย'},
+ {tag:'คูณ',q:'นักเรียน 36 คน 2/3 ชอบฟุตบอล มีกี่คน',s:['2/3 ของ 36 คือ 2/3 × 36','36 ÷ 3 = 12 แล้ว × 2'],a:'24 คน'},
+ {tag:'หาร',q:'มีเชือกยาว 3/4 เมตร ตัดเป็นท่อนละ 1/8 เมตร ได้กี่ท่อน',s:['3/4 ÷ 1/8 = 3/4 × 8/1','= 24/4'],a:'6 ท่อน'}]);
+memo('a22','บวกลบทศนิยม <u>ตั้งจุดให้ตรงกัน</u> · คูณ: คูณเหมือนจำนวนเต็ม แล้วนับตำแหน่งทศนิยมรวมของตัวตั้งกับตัวคูณ · หาร: เลื่อนจุดของตัวหารให้เป็นจำนวนเต็ม แล้วเลื่อนตัวตั้งเท่ากัน');
+examples('a22',[
+ {tag:'เงินทอน',q:'ซื้อของ 37.75 บาท จ่าย 100 บาท ได้เงินทอนเท่าใด',s:['ตั้งจุดให้ตรงกัน 100.00 − 37.75'],a:'62.25 บาท'},
+ {tag:'คูณ',q:'น้ำมันลิตรละ 32.45 บาท เติม 3.2 ลิตร จ่ายเท่าใด',s:['3245 × 32 = 103,840','ทศนิยมรวม 2 + 1 = 3 ตำแหน่ง → 103.840'],a:'103.84 บาท'},
+ {tag:'หาร',q:'หาค่า 4.68 ÷ 0.12',s:['เลื่อนจุดตัวหาร 2 ตำแหน่ง: 0.12 → 12','เลื่อนตัวตั้งเท่ากัน: 4.68 → 468','468 ÷ 12 = 39'],a:'39'}]);
+memo('a23','จำนวนตรรกยะ = จำนวนที่เขียนเป็น a/b ได้ (b ≠ 0) รวมจำนวนเต็ม เศษส่วน ทศนิยมรู้จบ และทศนิยมซ้ำ · ทศนิยมซ้ำแปลงเป็นเศษส่วนได้เสมอ เช่น 0.3̇ = 1/3');
+examples('a23',[
+ {tag:'จำแนก',q:'จำนวนใดเป็นจำนวนตรรกยะ: −5, 0.25, 0.3̇, 2/7',s:['−5 = −5/1, 0.25 = 1/4, 0.3̇ = 1/3','2/7 อยู่ในรูป a/b แล้ว'],a:'เป็นจำนวนตรรกยะทั้งหมด'},
+ {tag:'ทศนิยมซ้ำ',q:'เขียน 0.4̇5̇ (0.454545…) เป็นเศษส่วน',s:['ให้ x = 0.4545… ซ้ำ 2 หลัก คูณ 100: 100x = 45.4545…','100x − x = 45 → 99x = 45','x = 45/99 = 5/11'],a:'5/11'},
+ {tag:'เปรียบเทียบ',q:'−3/4 กับ −0.7 จำนวนใดมากกว่า',s:['−3/4 = −0.75','บนเส้นจำนวน −0.7 อยู่ขวาของ −0.75'],a:'−0.7 มากกว่า'}]);
+
+/* ---------- 3.1–3.2 เลขยกกำลัง: การเติบโต ---------- */
+(function(){const s=sec('31',`<h2>เห็นภาพ: คูณซ้ำ ๆ โตเร็วแค่ไหน</h2><div class="vrow"><div id="v31"></div><div class="vctl">
+ <label>ฐาน a = <b id="v31a">2</b><input type="range" id="v31r" min="2" max="5" value="2"></label>
+ <label>เลขชี้กำลัง n = <b id="v31n">5</b><input type="range" id="v31s" min="1" max="8" value="5"></label>
+ <p class="big" id="v31o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> aⁿ = a คูณกัน n ตัว <u>ไม่ใช่</u> a × n · 2⁵ = 32 แต่ 2 × 5 = 10 · คูณฐานเดียวกัน <u>เลขชี้กำลังบวกกัน</u> · หารฐานเดียวกัน <u>เลขชี้กำลังลบกัน</u> · a⁰ = 1 (a ≠ 0)</div>`);if(!s)return;
+ const up=()=>{const a=+$i('v31r').value,n=+$i('v31s').value;$i('v31a').textContent=a;$i('v31n').textContent=n;const vals=[...Array(n)].map((_,i)=>a**(i+1)),mx=a**8;
+  let o='';vals.forEach((v,i)=>{const h=Math.max(3,Math.log(v+1)/Math.log(mx+1)*150),x=30+i*54;o+=`<rect x="${x}" y="${170-h}" width="40" height="${h}" rx="6" fill="${i===n-1?C.p:C.b}" fill-opacity="${i===n-1?.95:.55}"/>`+T(x+20,190,`${a}<tspan font-size="9" dy="-6">${i+1}</tspan>`,{fs:13})+T(x+20,162-h,v.toLocaleString(),{fs:11})});
+  $i('v31').innerHTML=svg(480,200,o,'แท่งแสดงค่าเลขยกกำลัง (สเกลลอการิทึม)');
+  $i('v31o').innerHTML=`${a}<sup>${n}</sup> = ${Array(n).fill(a).join(' × ')}<br>= <b>${(a**n).toLocaleString()}</b><br><span style="font-size:15px">เทียบ ${a} × ${n} = ${a*n}</span>`};
+ ['v31r','v31s'].forEach(i=>$i(i).oninput=up);up()})();
+examples('31',[
+ {tag:'แชร์ข่าว',q:'ข่าวลือ 1 คนส่งต่อให้ 3 คน แต่ละคนส่งต่ออีก 3 คน ไปเรื่อย ๆ รอบที่ 4 มีคนได้รับข่าวใหม่กี่คน',s:['รอบที่ 1: 3 คน รอบที่ 2: 3 × 3 = 3²','รอบที่ 4: 3⁴ = 3 × 3 × 3 × 3'],a:'81 คน'},
+ {tag:'ฐานลบ',q:'(−2)⁴ กับ −2⁴ ต่างกันอย่างไร',s:['(−2)⁴ = (−2)(−2)(−2)(−2) = 16','−2⁴ = −(2 × 2 × 2 × 2) = −16'],a:'(−2)⁴ = 16 แต่ −2⁴ = −16 วงเล็บสำคัญมาก'},
+ {tag:'เขียนเป็นเลขยกกำลัง',q:'เขียน 125 ในรูปเลขยกกำลังที่มีฐานเป็นจำนวนเฉพาะ',s:['125 = 5 × 25 = 5 × 5 × 5'],a:'5³'}]);
+memo('32','aᵐ × aⁿ = aᵐ⁺ⁿ · aᵐ ÷ aⁿ = aᵐ⁻ⁿ · (aᵐ)ⁿ = aᵐⁿ · ใช้ได้เมื่อ <u>ฐานเดียวกัน</u> เท่านั้น · a⁻ⁿ = 1/aⁿ');
+examples('32',[
+ {tag:'คูณ',q:'เขียน 2³ × 2⁴ ในรูปเลขยกกำลัง',s:['ฐานเดียวกัน นำเลขชี้กำลังบวกกัน 3 + 4'],a:'2⁷ = 128'},
+ {tag:'หาร',q:'หาค่า 10⁸ ÷ 10⁵',s:['ฐานเดียวกัน นำเลขชี้กำลังลบกัน 8 − 5'],a:'10³ = 1,000'},
+ {tag:'ยกกำลังซ้อน',q:'เขียน (3²)³ ในรูปเลขยกกำลัง',s:['(3²)³ = 3² × 3² × 3²','= 3²⁺²⁺² = 3⁶'],a:'3⁶ = 729'}]);
+
+/* ---------- 3.3 สัญกรณ์วิทยาศาสตร์: สเกลจริง ---------- */
+(function(){const ITEMS=[['เส้นผ่านศูนย์กลางไวรัส (ประมาณ)',1e-7,'ม.'],['ความหนาของกระดาษ',1e-4,'ม.'],['ความสูงของนักเรียน',1.6,'ม.'],['ความสูงของดอยอินทนนท์',2.565e3,'ม.'],['ระยะทางกรุงเทพฯ–เชียงใหม่ (ทางรถ ประมาณ)',6.9e5,'ม.'],['ระยะทางโลก–ดวงจันทร์ (เฉลี่ย ประมาณ)',3.84e8,'ม.'],['ระยะทางโลก–ดวงอาทิตย์ (เฉลี่ย ประมาณ)',1.496e11,'ม.']];
+ const s=sec('33',`<h2>เห็นภาพ: เล็กสุดถึงใหญ่สุดด้วยสัญกรณ์วิทยาศาสตร์</h2><div class="vrow"><div id="v33"></div><div class="vctl">
+ <label>เลือกสิ่งของ<input type="range" id="v33r" min="0" max="${ITEMS.length-1}" value="3"></label><p class="big" id="v33o"></p></div></div>
+ <div class="memo"><b>จำง่าย:</b> A × 10ⁿ โดย <u>1 ≤ A &lt; 10</u> · จำนวนใหญ่ n เป็นบวก (เลื่อนจุดไปทางซ้ายกี่ตำแหน่ง n เท่านั้น) · จำนวนเล็กกว่า 1 n เป็นลบ</div>`);if(!s)return;
+ const sci=v=>{const n=Math.floor(Math.log10(v)+1e-9),A=v/10**n;return[+A.toFixed(3),n]};
+ const up=()=>{const k=+$i('v33r').value,[nm,v,u]=ITEMS[k],[A,n]=sci(v);let o=`<line x1="20" y1="80" x2="460" y2="80" stroke="currentColor"/>`;
+  ITEMS.forEach((it,i)=>{const [a2,n2]=sci(it[1]),x=20+(n2+8)/20*440;o+=`<circle cx="${x}" cy="80" r="${i===k?9:5}" fill="${i===k?C.p:C.b}"/>`+(i===k?T(x,58,`10<tspan font-size="10" dy="-6">${mn(n2)}</tspan>`,{fs:15,b:1,c:C.p}):'')});
+  for(let e=-8;e<=12;e+=4)o+=T(20+(e+8)/20*440,104,`10<tspan font-size="9" dy="-6">${mn(e)}</tspan>`,{fs:12});
+  $i('v33').innerHTML=svg(480,120,o,'สเกลเลขยกกำลังของสิบ');
+  $i('v33o').innerHTML=`<span style="font-size:15px">${nm}</span><br>${v.toLocaleString('en-US',{maximumFractionDigits:9})} ${u}<br>= <b>${A} × 10<sup>${mn(n)}</sup></b> ${u}`};$i('v33r').oninput=up;up()})();
+examples('33',[
+ {tag:'จำนวนมาก',q:'เขียน 45,000,000 ในรูปสัญกรณ์วิทยาศาสตร์',s:['ให้ A = 4.5 (อยู่ระหว่าง 1 ถึง 10)','เลื่อนจุดจาก 45000000. ไปไว้หลัง 4 ได้ 7 ตำแหน่ง'],a:'4.5 × 10⁷'},
+ {tag:'จำนวนน้อย',q:'เขียน 0.00062 ในรูปสัญกรณ์วิทยาศาสตร์',s:['A = 6.2','เลื่อนจุดไปทางขวา 4 ตำแหน่ง จึงได้เลขชี้กำลัง −4'],a:'6.2 × 10⁻⁴'},
+ {tag:'คูณ',q:'หาค่า (3 × 10⁴) × (4 × 10⁵) ในรูปสัญกรณ์วิทยาศาสตร์',s:['3 × 4 = 12 และ 10⁴ × 10⁵ = 10⁹ ได้ 12 × 10⁹','12 ไม่อยู่ระหว่าง 1 ถึง 10 จึงเขียน 12 = 1.2 × 10¹'],a:'1.2 × 10¹⁰'}]);
+memo('34','อ่านโจทย์แล้ว <u>แปลงหน่วยให้ตรงกันก่อน</u> · คูณหารแยกส่วน A กับส่วน 10ⁿ · ตอบในรูปสัญกรณ์วิทยาศาสตร์ ตรวจว่า A อยู่ระหว่าง 1 ถึง 10');
+examples('34',[
+ {tag:'ความเร็วแสง',q:'แสงเดินทางประมาณ 3 × 10⁸ เมตรต่อวินาที ใน 1 นาทีเดินทางได้ประมาณกี่เมตร',s:['1 นาที = 60 วินาที = 6 × 10¹ วินาที','(3 × 10⁸) × (6 × 10¹) = 18 × 10⁹','= 1.8 × 10¹⁰'],a:'ประมาณ 1.8 × 10¹⁰ เมตร'},
+ {tag:'ข้อมูลดิจิทัล',q:'ไฟล์รูป 1 รูปขนาด 2 × 10⁶ ไบต์ เก็บ 500 รูปใช้พื้นที่เท่าใด',s:['500 = 5 × 10²','(2 × 10⁶) × (5 × 10²) = 10 × 10⁸ = 1 × 10⁹'],a:'1 × 10⁹ ไบต์ (ประมาณ 1 กิกะไบต์)'},
+ {tag:'แบคทีเรีย',q:'แบคทีเรียตัวหนึ่งยาว 2 × 10⁻⁶ เมตร เรียงต่อกัน 1,000 ตัว ยาวเท่าใด',s:['1,000 = 10³','(2 × 10⁻⁶) × 10³ = 2 × 10⁻³'],a:'2 × 10⁻³ เมตร หรือ 2 มิลลิเมตร'}]);
+
+/* ---------- 4.x มิติสัมพันธ์ ---------- */
+memo('41','จินตนาการ <u>มีดตัดผ่านรูป</u> แล้วมองรอยตัด · ตัดขนานฐาน มักได้รูปเหมือนฐาน · ทรงกลมตัดแนวใดก็ได้วงกลม · ลองนึกถึงของจริง เช่น หั่นแตงกวา หั่นขนมปังแถว');
+examples('41',[
+ {tag:'ของจริง',q:'หั่นแตงกวา (ทรงกระบอก) ตามขวางและตามยาว ได้หน้าตัดรูปอะไร',s:['ตามขวาง = ตัดขนานกับฐานวงกลม','ตามยาว = ตัดผ่านแกน ตั้งฉากกับฐาน'],a:'ตามขวางได้วงกลม ตามยาวได้รูปสี่เหลี่ยมมุมฉาก'},
+ {tag:'พีระมิด',q:'ตัดพีระมิดฐานสี่เหลี่ยมจัตุรัสด้วยระนาบขนานกับฐาน ได้หน้าตัดรูปใด',s:['ระนาบขนานฐาน หน้าตัดจะคล้ายฐาน','ยิ่งใกล้ยอด รูปยิ่งเล็กลง'],a:'รูปสี่เหลี่ยมจัตุรัสที่เล็กกว่าฐาน'},
+ {tag:'ลูกบาศก์',q:'ตัดลูกบาศก์ผ่านขอบตรงข้ามสองเส้นที่ไม่อยู่บนหน้าเดียวกัน ได้หน้าตัดรูปใด',s:['ระนาบผ่านขอบบนข้างหนึ่งและขอบล่างอีกข้างหนึ่ง','รอยตัดยาวเท่าขอบ 2 ด้าน และยาวเท่าเส้นทแยงมุมของหน้า 2 ด้าน'],a:'รูปสี่เหลี่ยมมุมฉาก (ผืนผ้า)'}]);
+memo('42','มอง <u>ด้านหน้า ด้านข้าง ด้านบน</u> ทีละมุม เหมือนถ่ายรูปตรง ๆ ไม่เฉียง · นับจำนวนลูกบาศก์ที่สูงที่สุดในแต่ละแถว · ภาพด้านบนบอกตำแหน่งที่มีลูกบาศก์อยู่');
+examples('42',[
+ {tag:'บ้าน',q:'บ้านทรงไทยมีหลังคาจั่ว มองจากด้านหน้า (ด้านจั่ว) จะเห็นรูปอะไร',s:['หลังคาจั่วด้านหน้าเป็นสามเหลี่ยม','ตัวบ้านเป็นสี่เหลี่ยมอยู่ใต้หลังคา'],a:'รูปห้าเหลี่ยมคล้ายบ้าน (สามเหลี่ยมบนสี่เหลี่ยม)'},
+ {tag:'กระป๋อง',q:'กระป๋องน้ำอัดลม มองด้านหน้าและด้านบนเห็นรูปอะไร',s:['ด้านหน้าเห็นด้านข้างของทรงกระบอก','ด้านบนเห็นฝาวงกลม'],a:'ด้านหน้าเป็นสี่เหลี่ยมผืนผ้า ด้านบนเป็นวงกลม'},
+ {tag:'ลูกบาศก์ซ้อน',q:'ภาพด้านบนเป็นสี่เหลี่ยม 2 × 2 และทุกช่องสูง 2 ชั้น ใช้ลูกบาศก์กี่ลูก',s:['ด้านบนมี 4 ช่อง','แต่ละช่องสูง 2 ลูก'],a:'4 × 2 = 8 ลูก'}]);
+memo('43','นับลูกบาศก์ <u>เป็นชั้น ๆ</u> จากล่างขึ้นบน หรือ <u>เป็นเสา ๆ</u> ตามภาพด้านบน · อย่าลืมลูกที่ซ่อนอยู่ด้านหลัง');
+examples('43',[
+ {tag:'นับเป็นเสา',q:'ภาพด้านบนเป็น 3 ช่องเรียงกัน ความสูงแต่ละเสาคือ 1, 2, 3 ใช้ลูกบาศก์กี่ลูก',s:['รวมความสูงทุกเสา','1 + 2 + 3'],a:'6 ลูก'},
+ {tag:'ทาสี',q:'ลูกบาศก์ใหญ่ 3 × 3 × 3 ทาสีทุกด้าน แล้วตัดเป็นลูกเล็ก 27 ลูก มีกี่ลูกที่ไม่โดนสีเลย',s:['ลูกที่ไม่โดนสีอยู่ข้างในสุด','ข้างในเป็นลูกบาศก์ขนาด (3 − 2) × (3 − 2) × (3 − 2)'],a:'1 ลูก'},
+ {tag:'ภาพสามด้าน',q:'ถ้าภาพด้านหน้าและด้านข้างเป็นสี่เหลี่ยม 2 × 2 เหมือนกัน ต้องใช้ลูกบาศก์อย่างน้อยกี่ลูก',s:['ต้องสูง 2 ชั้นอย่างน้อยหนึ่งเสาในทุกแนวที่มองเห็น','วางเป็นแนวทแยง 2 เสา เสาละ 2 ลูก ก็มองหน้าและข้างได้ 2 × 2'],a:'อย่างน้อย 4 ลูก'}]);
+
+/* ---------- 5.x สมการ ---------- */
+memo('51','หาแบบรูปโดยดู <u>ผลต่างของพจน์ที่ติดกัน</u> · ผลต่างคงที่ d → พจน์ที่ n = d × n + (พจน์แรก − d) · ตรวจโดยแทน n = 1, 2');
+examples('51',[
+ {tag:'ไม้ขีด',q:'ต่อรูปสี่เหลี่ยมด้วยไม้ขีด รูปที่ 1, 2, 3 ใช้ 4, 7, 10 ก้าน รูปที่ n ใช้กี่ก้าน',s:['ผลต่าง 7 − 4 = 3, 10 − 7 = 3 คงที่','จึงเป็น 3n + (4 − 3) = 3n + 1','ตรวจ n = 2: 3(2) + 1 = 7 ✓'],a:'3n + 1 ก้าน'},
+ {tag:'โต๊ะ',q:'โต๊ะ 1 ตัวนั่งได้ 4 คน ต่อโต๊ะเป็นแถวยาว 2 ตัวนั่งได้ 6 คน 3 ตัวนั่ง 8 คน ถ้าต่อ 10 ตัวนั่งได้กี่คน',s:['ผลต่างคงที่ 2 → 2n + 2','n = 10: 2(10) + 2'],a:'22 คน'},
+ {tag:'ย้อนกลับ',q:'แบบรูป 5, 9, 13, 17, … พจน์ใดมีค่า 81',s:['ผลต่าง 4 → พจน์ที่ n = 4n + 1','4n + 1 = 81 → 4n = 80'],a:'พจน์ที่ 20'}]);
+memo('52','คำตอบของสมการ คือ <u>ค่าที่แทนแล้วทำให้สองข้างเท่ากัน</u> · ตรวจคำตอบด้วยการแทนค่าเสมอ · บางสมการไม่มีคำตอบ บางสมการเป็นจริงทุกค่า');
+examples('52',[
+ {tag:'ตรวจคำตอบ',q:'4 เป็นคำตอบของ 3x − 5 = 7 หรือไม่',s:['แทน x = 4: 3(4) − 5 = 12 − 5 = 7','ข้างซ้ายเท่ากับข้างขวา'],a:'เป็นคำตอบ'},
+ {tag:'เดาและตรวจ',q:'จำนวนใดบวก 9 แล้วได้ −2',s:['เขียนสมการ x + 9 = −2','ลองแทน x = −11: −11 + 9 = −2 ✓'],a:'−11'},
+ {tag:'ทุกจำนวน',q:'สมการ 2(x + 3) = 2x + 6 มีคำตอบกี่จำนวน',s:['กระจาย 2(x + 3) = 2x + 6','สองข้างเหมือนกันทุกประการ'],a:'ทุกจำนวนเป็นคำตอบ'}]);
+memo('53','<u>ทำอย่างเดียวกันทั้งสองข้าง</u> สมการยังเป็นจริง เหมือนตาชั่งที่ต้องสมดุล · บวก ลบ คูณ ได้ทุกจำนวน · หารได้ทุกจำนวนยกเว้น 0');
+examples('53',[
+ {tag:'ตาชั่ง',q:'ตาชั่งข้างหนึ่งมีกล่อง x กับลูกตุ้ม 3 กก. อีกข้างมี 10 กก. สมดุลพอดี กล่องหนักเท่าใด',s:['สมการ x + 3 = 10','เอาลูกตุ้ม 3 กก. ออกทั้งสองข้าง (ลบ 3)'],a:'x = 7 กก.'},
+ {tag:'คูณ',q:'แก้สมการ x/4 = 6',s:['คูณด้วย 4 ทั้งสองข้าง','x = 24'],a:'24'},
+ {tag:'หาร',q:'แก้สมการ −5x = 35',s:['หารด้วย −5 ทั้งสองข้าง','x = 35 ÷ (−5)'],a:'−7'}]);
+memo('54','ย้ายทีละขั้น: <u>กำจัดตัวบวก/ลบก่อน แล้วค่อยกำจัดตัวคูณ/หาร</u> · มีตัวแปรสองข้าง ย้ายตัวแปรมาข้างเดียว · มีวงเล็บ กระจายก่อน · ตรวจคำตอบทุกครั้ง');
+examples('54',[
+ {tag:'สองขั้น',q:'แก้สมการ 4x + 7 = 31',s:['ลบ 7 ทั้งสองข้าง: 4x = 24','หาร 4 ทั้งสองข้าง: x = 6','ตรวจ 4(6) + 7 = 31 ✓'],a:'x = 6'},
+ {tag:'ตัวแปรสองข้าง',q:'แก้สมการ 5x − 3 = 2x + 9',s:['ลบ 2x ทั้งสองข้าง: 3x − 3 = 9','บวก 3: 3x = 12','หาร 3: x = 4'],a:'x = 4'},
+ {tag:'วงเล็บ',q:'แก้สมการ 3(x − 2) = 15',s:['กระจาย: 3x − 6 = 15','บวก 6: 3x = 21','หาร 3: x = 7'],a:'x = 7'}]);
+memo('55','อ่านโจทย์ 3 รอบ: <u>ถามอะไร</u> → ให้ตัวแปรแทนสิ่งนั้น · <u>รู้อะไร</u> → เขียนความสัมพันธ์เป็นสมการ · <u>แก้แล้วตรวจกับโจทย์</u> ไม่ใช่ตรวจกับสมการอย่างเดียว');
+examples('55',[
+ {tag:'อายุ',q:'พ่ออายุมากกว่าลูก 28 ปี อีก 4 ปีอายุรวมกันเป็น 60 ปี ปัจจุบันลูกอายุเท่าใด',s:['ให้ลูกอายุ x ปี พ่ออายุ x + 28','อีก 4 ปี: (x + 4) + (x + 32) = 60','2x + 36 = 60 → 2x = 24 → x = 12'],a:'ลูกอายุ 12 ปี'},
+ {tag:'ซื้อของ',q:'ซื้อปากกา 3 ด้าม และดินสอ 2 แท่ง ราคาแท่งละ 8 บาท จ่าย 61 บาท ปากการาคาด้ามละเท่าใด',s:['ให้ปากกาด้ามละ x บาท: 3x + 2(8) = 61','3x + 16 = 61 → 3x = 45'],a:'ด้ามละ 15 บาท'},
+ {tag:'เส้นรอบรูป',q:'สี่เหลี่ยมผืนผ้ายาวกว่ากว้าง 5 ซม. เส้นรอบรูป 38 ซม. กว้างเท่าใด',s:['ให้กว้าง x ยาว x + 5','2x + 2(x + 5) = 38 → 4x + 10 = 38','4x = 28 → x = 7'],a:'กว้าง 7 ซม. ยาว 12 ซม.'}]);
+})();
+
+</script>
+<script>
+/* ===== STEM·SELC (ใช้ร่วม ม.1 ม.3 ม.5) — สืบจากปรากฏการณ์จริง + วิเคราะห์ข้อมูลด้วย CODAP + CER ก่อน/หลังเห็นหลักฐาน · ลิขสิทธิ์ครูคุ้ม ===== */
+window.KSelc=function(A){
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ctx=()=>(A.ctx()||{});const ACTS=A.acts;
+const num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:null};
+const r2=x=>Math.round(x*100)/100;
+if(!document.getElementById('slcCss')){const css=document.createElement('style');css.id='slcCss';css.textContent=`
+.slc{margin-top:18px;border-radius:20px;padding:16px 18px;border:2px solid #17a673;background:color-mix(in srgb,#17a673 7%,transparent);text-align:left}
+.slc h3{margin:0 0 4px;font-size:19px}.slc h3::before,.slc h3::after{content:none!important;display:none!important}
+.slc .bdg{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;margin:0 4px 4px 0;background:#17a673;color:#fff}
+.slc .bdg.c{background:#f2a33a;color:#1d1830}.slc .bdg.s{background:#2f7de1}
+.slc .stp{margin-top:12px;border-radius:14px;padding:10px 12px;background:color-mix(in srgb,currentColor 4%,transparent)}
+.slc .stp>b{display:block;margin-bottom:4px}
+.slc textarea,.slc input[type=text],.slc input[type=number]{font:inherit;width:100%;box-sizing:border-box;border-radius:10px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit;padding:7px 9px}
+.slc textarea{min-height:58px}
+.slc label{display:block;margin:6px 0 2px;font-size:14.5px}
+.slc table{width:100%;border-collapse:collapse;font-size:14.5px}.slc td,.slc th{padding:4px;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent);text-align:left}
+.slc td input{min-width:60px}
+.slc .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.slc button{font:inherit;min-height:42px;border-radius:12px;padding:7px 13px;cursor:pointer;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit}
+.slc button.p{background:#17a673;border-color:#17a673;color:#fff;font-weight:600}
+.slc a.cd{display:inline-flex;align-items:center;min-height:42px;border-radius:12px;padding:7px 13px;background:#2f7de1;color:#fff;text-decoration:none;font-weight:600}
+.slc svg{width:100%;height:auto;max-height:300px}
+.slc .res{margin-top:8px;font-size:15px}
+.slc .msg{font-size:14px;opacity:.85;margin-top:6px}
+.slc ol{margin:4px 0 0 20px;padding:0}.slc li{margin:2px 0}
+.slc .cn{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:620px){.slc .cn{grid-template-columns:1fr}}
+.slc .tvw table{font-size:13.5px}
+.slc,.slc .stp,.slc label,.slc p,.slc b,.slc li,.slc summary{text-align:left!important}
+.slc label{display:block!important;width:auto!important;max-width:none!important;margin:6px 0 2px!important;padding:0!important;justify-self:stretch!important;float:none!important}
+.slc .stp,.slc .cn>div{display:block!important}
+.slc .cn>div,.slc .stp{min-width:0;width:auto!important;max-width:none!important;margin-left:0!important;margin-right:0!important}
+.slc textarea{width:100%!important;max-width:none!important;margin:0!important;display:block}`;document.head.appendChild(css)}
+
+/* ---------- กราฟ ---------- */
+function chart(a,p,st){if(a.draw)return a.draw(p,st);const W=560,H=280,L=52,B=40,T=16,R=14;if(!p.length)return'<p class="msg">กรอกข้อมูลแล้วกราฟจะขึ้นที่นี่</p>';
+ const ys=p.flatMap(v=>[v.y,v.y2]).filter(v=>v!=null);let lo=a.kind==='pair'?Math.floor(Math.min(...ys)-1):0,hi=Math.max(...ys,a.goal&&a.kind==='line'?a.goal:0)||1;if(a.id==='water')hi=100;if(hi<=lo)hi=lo+1;
+ const Y=v=>H-B-(v-lo)/(hi-lo)*(H-B-T);let g='';
+ for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4,y=Y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="currentColor" stroke-opacity=".12"/><text x="${L-6}" y="${y+4}" font-size="11" text-anchor="end" fill="currentColor" opacity=".7">${r2(v)}</text>`}
+ let body='',lab='';
+ if(a.kind==='line'){const xm=Math.max(...p.map(v=>v.x),a.goal&&p.length?a.goal/(p[p.length-1].y/p[p.length-1].x||1):0)||1,X=x=>L+x/xm*(W-L-R);
+  const A=p.length&&p[p.length-1].x?p[p.length-1].y/p[p.length-1].x:0;
+  body=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(xm)}" y2="${Y(A*xm)}" stroke="#2f7de1" stroke-width="3"/>`+(a.goal?`<line x1="${L}" x2="${W-R}" y1="${Y(a.goal)}" y2="${Y(a.goal)}" stroke="#e0558f" stroke-dasharray="6 5"/><text x="${W-R}" y="${Y(a.goal)-6}" font-size="12" text-anchor="end" fill="#e0558f">ถังเต็ม ${a.goal.toLocaleString()} ลิตร</text>`:'')+p.map(v=>`<circle cx="${X(v.x)}" cy="${Y(v.y)}" r="5" fill="#f2a33a"/>`).join('');
+  for(let k=0;k<=4;k++){const v=xm*k/4;lab+=`<text x="${X(v)}" y="${H-B+16}" font-size="11" text-anchor="middle" fill="currentColor" opacity=".7">${r2(v)}</text>`}
+  lab+=`<text x="${(W+L)/2}" y="${H-4}" font-size="12" text-anchor="middle" fill="currentColor">${a.xlab}</text>`}
+ else{const n=p.length,sx=(W-L-R)/n;p.forEach((v,i)=>{const x0=L+sx*i;if(a.kind==='pair'){const w=sx*.32;[[v.y,'#17a673',x0+sx*.16],[v.y2,'#d94f3d',x0+sx*.52]].forEach(([y,c,x])=>{body+=`<rect x="${x}" y="${Y(y)}" width="${w}" height="${H-B-Y(y)}" rx="4" fill="${c}"/><text x="${x+w/2}" y="${Y(y)-5}" font-size="11" text-anchor="middle" fill="currentColor">${y}</text>`})}
+  else{const w=sx*.6,x=x0+sx*.2;body+=`<rect x="${x}" y="${Y(v.y)}" width="${w}" height="${H-B-Y(v.y)}" rx="5" fill="${['#2f7de1','#17a673','#f2a33a','#7c5ce0','#e0558f','#14a3b8'][i%6]}"/><text x="${x+w/2}" y="${Y(v.y)-6}" font-size="12" text-anchor="middle" fill="currentColor">${v.y}%</text>`}
+  lab+=`<text x="${x0+sx/2}" y="${H-B+16}" font-size="12" text-anchor="middle" fill="currentColor">${esc(String(v.x).slice(0,12))}</text>`});
+  if(a.kind==='pair')lab+=`<rect x="${L}" y="2" width="12" height="12" rx="3" fill="#17a673"/><text x="${L+16}" y="12" font-size="12" fill="currentColor">ใต้ต้นไม้</text><rect x="${L+90}" y="2" width="12" height="12" rx="3" fill="#d94f3d"/><text x="${L+106}" y="12" font-size="12" fill="currentColor">ลานคอนกรีต</text>`}
+ return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(a.ylab)}">${g}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="currentColor" stroke-opacity=".5"/>${body}${lab}<text x="12" y="${(H-B+T)/2}" font-size="12" fill="currentColor" transform="rotate(-90 12 ${(H-B+T)/2})" text-anchor="middle">${esc(a.ylab)}</text></svg>`}
+
+/* ---------- CSV สำหรับ CODAP ---------- */
+function csv(a,st){const p=a.calc(st.rows,st.ex);let h,rows;
+ if(a.csv){[h,rows]=a.csv(st,p)}else if(a.id==='water'){h=['พื้นผิว','น้ำที่เท_mL','น้ำที่เหลือ_mL','ร้อยละที่ซึม'];rows=st.rows.filter(r=>r[0]&&num(r[2])!=null).map(r=>{const q=p.find(v=>v.x===r[0]);return[r[0],r[1],r[2],q?q.y:'']})}
+ else if(a.id==='roof'){h=['x_ฝน_mm','y_น้ำ_ลิตร','พื้นที่หลังคา_ตรม'];rows=p.map(v=>[v.x,v.y,st.ex])}
+ else{h=['วันที่','จุดวัด','อุณหภูมิ'];rows=p.flatMap(v=>[[v.x,'ใต้ต้นไม้',v.y],[v.x,'ลานคอนกรีต',v.y2]])}
+ const c=ctx(),who=c.ME?[c.ME.cls||'',c.ME.no||'']:['',''];h=h.concat(['ห้อง','เลขที่']);
+ const q=s=>/[",\n]/.test(String(s))?'"'+String(s).replace(/"/g,'""')+'"':String(s);
+ return'﻿'+[h,...rows.map(r=>r.concat(who))].map(r=>r.map(q).join(',')).join('\n')}
+function dl(a,st){const b=new Blob([csv(a,st)],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(b),x=document.createElement('a');x.href=u;x.download='selc-'+a.id+'.csv';document.body.appendChild(x);x.click();x.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+
+/* ---------- เก็บงาน ---------- */
+const lkey=a=>{const c=ctx();return'selc-'+A.site+'-'+(c.U&&c.U.uid||'guest')+'-'+a.id};
+const loadL=a=>{try{return JSON.parse(localStorage.getItem(lkey(a))||'null')}catch(e){return null}};
+const saveL=(a,st)=>{try{localStorage.setItem(lkey(a),JSON.stringify(st))}catch(e){}};
+async function send(a,st){const c=ctx();if(!c.DB||!c.U||!c.ME||!c.DB.set)return'login';
+ const doc={uid:c.U.uid,sid:c.ME.sid||'',name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',site:A.site,act:a.id,title:a.title,
+  see:st.see||'',wonder:st.wonder||'',pre:st.pre||'',rows:JSON.stringify(st.rows),ex:st.ex||'',C:st.C||'',E:st.E||'',R:st.R||'',chg:st.chg||'',lim:st.lim||'',
+  time:window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date()};
+ await c.DB.set('selc/'+c.U.uid+'_'+A.site+'_'+a.id,doc,true);return'ok'}
+
+/* ---------- การ์ด ---------- */
+function card(a){const L=A.place(a.where);if(!L||L.querySelector('.slc[data-a="'+a.id+'"]'))return;
+ let st=loadL(a)||{rows:a.rows.map(r=>r.slice()),ex:a.extra?a.extra.def:''};
+ const s=document.createElement('section');s.className='slc';s.dataset.a=a.id;
+ const F=(k,lab,ph)=>`<label for="sl-${a.id}-${k}">${lab}</label><textarea id="sl-${a.id}-${k}" data-k="${k}" placeholder="${esc(ph||'')}">${esc(st[k]||'')}</textarea>`;
+ s.innerHTML=`<span class="bdg">STEM·SELC</span><span class="bdg s">CODAP</span><span class="bdg c">${esc(a.ccc)}</span>
+ <h3>🌏 ${esc(a.title)}</h3>
+ <div class="stp"><b>1) สังเกตปรากฏการณ์</b><p style="margin:0">${esc(a.ph)}</p><div class="cn"><div>${F('see','ฉันเห็น…')}</div><div>${F('wonder','ฉันสงสัยว่า…')}</div></div></div>
+ <div class="stp"><b>2) คำถามและคาดการณ์ก่อนเห็นหลักฐาน</b><p style="margin:0"><b>คำถาม:</b> ${esc(a.ask)}</p>${F('pre','ฉันคาดว่า… เพราะ…')}</div>
+ <div class="stp"><b>3) ออกแบบและเก็บข้อมูล</b><ol>${a.how.map(h=>`<li>${esc(h)}</li>`).join('')}</ol>
+  ${a.extra?`<label for="sl-${a.id}-ex">${esc(a.extra.label)}</label><input type="number" min="0" step="any" id="sl-${a.id}-ex" class="sl-ex" value="${esc(st.ex)}">`:''}
+  <div style="overflow-x:auto;margin-top:8px"><table><thead><tr>${a.cols.map(h=>`<th>${esc(h)}</th>`).join('')}<th></th></tr></thead><tbody class="sl-tb"></tbody></table></div>
+  <div class="row"><button type="button" class="sl-add">+ เพิ่มแถว</button></div></div>
+ <div class="stp"><b>4) วิเคราะห์ข้อมูล</b><div class="sl-ch"></div><p class="res sl-sum"></p>
+  <details><summary>วิเคราะห์ต่อใน CODAP (เครื่องมือวิเคราะห์ข้อมูลฟรี ไม่ต้องติดตั้ง)</summary><ol>${a.codap.map(h=>`<li>${esc(h)}</li>`).join('')}</ol></details>
+  <div class="row"><button type="button" class="sl-dl">⬇ ดาวน์โหลดข้อมูล (CSV)</button><a class="cd" href="https://codap.concord.org/app/" target="_blank" rel="noopener">เปิด CODAP ↗</a></div></div>
+ <div class="stp"><b>5) อธิบายด้วยหลักฐาน (CER) หลังเห็นข้อมูล</b>
+  ${F('C','C ข้อกล่าวอ้าง — ตอบคำถามในประโยคเดียว')}${F('E','E หลักฐาน — ยกตัวเลขจากข้อมูลอย่างน้อย 2 จุด')}${F('R','R เหตุผล — ใช้หลักคณิตศาสตร์อธิบายว่าทำไมหลักฐานสนับสนุนข้อกล่าวอ้าง')}
+  ${F('chg','คำตอบเปลี่ยนจากที่คาดไว้ไหม? หลักฐานอะไรทำให้เปลี่ยนหรือยืนยัน')}
+  ${F('lim','หลักฐานนี้ "บอกอะไรไม่ได้" บ้าง?')}
+  <details><summary>เฉลยแนวคิด: ข้อจำกัดของหลักฐาน (กดดูหลังเขียนเองแล้ว)</summary><p>${esc(a.limit)}</p></details>
+  <div class="row"><button type="button" class="p sl-send">ส่งงานให้ครู</button>${A.isT(ctx())?'<button type="button" class="sl-tv">ดูงานนักเรียน (ครู)</button>':''}</div><p class="msg sl-msg"></p><div class="tvw"></div></div>`;
+ const anchor=L.querySelector(':scope > .krs')||null;(anchor?anchor.before(s):L.appendChild(s));
+ const tb=s.querySelector('.sl-tb');
+ function rowsUI(){tb.innerHTML=st.rows.map((r,i)=>`<tr>${a.cols.map((h,j)=>`<td><input ${a.id==='roof'||j>0?'type="number" step="any" inputmode="decimal"':'type="text"'} aria-label="${esc(h)} แถว ${i+1}" data-i="${i}" data-j="${j}" value="${esc(r[j]??'')}"></td>`).join('')}<td><button type="button" aria-label="ลบแถว ${i+1}" data-del="${i}">✕</button></td></tr>`).join('')}
+ function draw(){const p=a.calc(st.rows,st.ex);s.querySelector('.sl-ch').innerHTML=chart(a,p,st);s.querySelector('.sl-sum').innerHTML=a.sum(p,st.ex)||'';saveL(a,st)}
+ rowsUI();draw();
+ tb.addEventListener('input',e=>{const t=e.target;if(t.dataset.i==null)return;st.rows[+t.dataset.i][+t.dataset.j]=t.value;draw()});
+ tb.addEventListener('click',e=>{const d=e.target.dataset.del;if(d==null)return;st.rows.splice(+d,1);if(!st.rows.length)st.rows.push(a.cols.map(()=>''));rowsUI();draw()});
+ s.querySelector('.sl-add').onclick=()=>{if(st.rows.length>=30)return;st.rows.push(a.cols.map((h,j)=>a.id==='water'&&j===1?'100':''));rowsUI();draw()};
+ const ex=s.querySelector('.sl-ex');if(ex)ex.oninput=()=>{st.ex=ex.value;draw()};
+ s.querySelectorAll('textarea[data-k]').forEach(t=>t.oninput=()=>{st[t.dataset.k]=t.value;saveL(a,st)});
+ s.querySelector('.sl-dl').onclick=()=>dl(a,st);
+ const msg=s.querySelector('.sl-msg');
+ s.querySelector('.sl-send').onclick=async()=>{if(!(st.C&&st.E&&st.R)){msg.textContent='เขียน C E R ให้ครบก่อนส่งนะ';return}msg.textContent='กำลังส่ง…';
+  try{const r=await send(a,st);msg.textContent=r==='ok'?'ส่งให้ครูแล้ว ✓ แก้แล้วส่งซ้ำได้ ระบบเก็บครั้งล่าสุด':'เข้าสู่ระบบก่อนจึงจะส่งได้ (งานยังเก็บไว้ในเครื่อง)'}catch(e){msg.textContent='ส่งไม่สำเร็จ ลองใหม่อีกครั้ง (งานยังเก็บไว้ในเครื่อง)'}};
+ const tv=s.querySelector('.sl-tv');if(tv)tv.onclick=async()=>{const w=s.querySelector('.tvw');w.textContent='กำลังโหลด…';let r=[];
+  try{r=(await ctx().DB.q('selc',[['act','==',a.id]])).filter(x=>x.site===A.site)}catch(e){w.textContent='โหลดไม่ได้ ตรวจสิทธิ์ Firestore ของคอลเลกชัน selc';return}
+  r.sort((x,y)=>String(x.cls).localeCompare(String(y.cls))||(+x.no||0)-(+y.no||0));
+  w.innerHTML=r.length?`<p class="msg">ส่งแล้ว ${r.length} คน</p><div style="overflow-x:auto"><table><tr><th>ห้อง/เลขที่</th><th>ชื่อ</th><th>คาดการณ์ก่อน</th><th>C</th><th>E</th><th>R</th><th>ข้อจำกัด</th></tr>${r.map(x=>`<tr><td>${esc(x.cls)} / ${esc(x.no)}</td><td>${esc(x.name)}</td><td>${esc(x.pre)}</td><td>${esc(x.C)}</td><td>${esc(x.E)}</td><td>${esc(x.R)}</td><td>${esc(x.lim)}</td></tr>`).join('')}</table></div>`:'<p class="msg">ยังไม่มีใครส่ง</p>'};
+}
+function init(){ACTS.forEach(a=>{try{card(a)}catch(e){console.error('selc',a.id,e)}})}
+if(A.hook)A.hook(()=>setTimeout(init,0));
+if(document.readyState==='loading')addEventListener('DOMContentLoaded',()=>setTimeout(init,300));else setTimeout(init,300);
+let lu='';setInterval(()=>{const c=ctx(),k=(c.U&&c.U.uid||'')+(A.isT(c)?'T':'');if(k!==lu){const first=lu==='';lu=k;if(!first){document.querySelectorAll('.slc').forEach(x=>x.remove());init()}}},1500);
+return{ACTS,csv,chart};
+};
+
+(function(){
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=v=>{const n=parseFloat(String(v).replace(/,/g,''));return isFinite(n)?n:null};const r2=x=>Math.round(x*100)/100;
+const SELC_M1=[
+
+{id:'water',where:'b13',title:'น้ำหายไปไหน? — ร้อยละของน้ำที่ซึมลงพื้น',
+ ccc:'เหตุและผล · สัดส่วน',
+ ph:'หลังฝนตก ลานคอนกรีตหน้าเสาธงมีน้ำขัง แต่สนามหญ้าข้าง ๆ แทบไม่มีน้ำขัง',
+ ask:'พื้นผิวชนิดไหนทำให้น้ำซึมได้มากที่สุด และมากกว่ากันกี่เปอร์เซ็นต์?',
+ how:['เตรียมถาดขนาดเท่ากัน ใส่พื้นผิวต่างชนิด (ดิน หญ้า ทราย แผ่นกระเบื้อง/คอนกรีต)','เทน้ำถาดละ 100 mL เท่ากัน ด้วยความเร็วเท่ากัน','รอ 1 นาที แล้วตวงน้ำที่เหลือบนผิว/ไหลออกมา','กรอกในตาราง ระบบจะคิดร้อยละที่ซึมให้ ตรวจกับที่คิดเองในสมุด'],
+ cols:['พื้นผิว','น้ำที่เท (mL)','น้ำที่เหลือบนผิว (mL)'],
+ rows:[['ดิน','100',''],['สนามหญ้า','100',''],['ทราย','100',''],['คอนกรีต/กระเบื้อง','100','']],
+ calc:rows=>rows.map(r=>{const a=num(r[1]),b=num(r[2]);return a&&b!=null&&b>=0&&b<=a?{x:r[0],y:r2((a-b)/a*100)}:null}).filter(Boolean),
+ ylab:'ร้อยละของน้ำที่ซึม (%)',kind:'bar',
+ sum:p=>{if(p.length<2)return'';const s=[...p].sort((a,b)=>b.y-a.y);return`ซึมมากที่สุด: <b>${esc(s[0].x)}</b> ${s[0].y}% · น้อยที่สุด: <b>${esc(s[s.length-1].x)}</b> ${s[s.length-1].y}% · ต่างกัน ${r2(s[0].y-s[s.length-1].y)} จุดเปอร์เซ็นต์`},
+ codap:['ลากไฟล์ CSV ที่ดาวน์โหลดไปวางในหน้า CODAP จะได้ตาราง','ลากหัวคอลัมน์ "ร้อยละที่ซึม" ไปแกนตั้งของกราฟ และ "พื้นผิว" ไปแกนนอน','รวมข้อมูลทุกกลุ่มในห้อง แล้วดูว่าแต่ละพื้นผิวผลใกล้กันไหม'],
+ limit:'การทดลองนี้บอกได้ว่าพื้นผิวไหนซึมน้ำได้ดีกว่า "ในถาด" แต่ยังบอกไม่ได้ว่าลานคอนกรีตเป็นสาเหตุเดียวของน้ำขังในโรงเรียน เพราะยังไม่ได้ดูความลาดชัน ท่อระบายน้ำ และปริมาณฝน'},
+{id:'roof',where:'d33',title:'น้ำฝนจากหลังคา — กราฟความสัมพันธ์เชิงเส้น',
+ ccc:'รูปแบบ · ระบบและแบบจำลอง',
+ ph:'โรงเรียนอยากรองน้ำฝนจากหลังคาโรงอาหารไว้รดต้นไม้หน้าแล้ง',
+ ask:'ฝนตกกี่มิลลิเมตร ถังขนาด 2,000 ลิตรจึงจะเต็ม?',
+ how:['ความรู้ตั้งต้น: ฝน 1 มิลลิเมตร ตกบนพื้นที่ 1 ตารางเมตร = น้ำ 1 ลิตร','วัดหรือประมาณพื้นที่หลังคา (กว้าง × ยาว) ใส่ในช่องด้านล่าง','กรอกปริมาณฝน (mm) อย่างน้อย 4 ค่า ระบบคิดน้ำที่รองได้ y = พื้นที่ × x','ดูว่าจุดเรียงเป็นเส้นตรงไหม แล้วอ่านค่าจากกราฟตอนถังเต็ม'],
+ extra:{label:'พื้นที่หลังคา (ตารางเมตร)',def:'50'},
+ cols:['ปริมาณฝน x (mm)'],
+ rows:[['5'],['10'],['20'],['40']],
+ calc:(rows,ex)=>{const A=num(ex);if(!A||A<=0)return[];return rows.map(r=>{const x=num(r[0]);return x!=null&&x>=0?{x,y:r2(A*x)}:null}).filter(Boolean).sort((a,b)=>a.x-b.x)},
+ ylab:'น้ำที่รองได้ y (ลิตร)',xlab:'ปริมาณฝน x (mm)',kind:'line',goal:2000,
+ sum:(p,ex)=>{const A=num(ex);if(!A||A<=0)return'ใส่พื้นที่หลังคาเป็นจำนวนบวก';return`สมการ: <b>y = ${A}x</b> · ถัง 2,000 ลิตรเต็มเมื่อฝนตก <b>${r2(2000/A)} mm</b> (เพราะ ${A} × x = 2000)`},
+ codap:['ลากไฟล์ CSV ลงใน CODAP','ลาก x ไปแกนนอน และ y ไปแกนตั้ง','เมนูรูปไม้บรรทัดของกราฟ → เลือก Least Squares Line ดูว่าได้เส้นตรงผ่านจุดกำเนิดไหม'],
+ limit:'แบบจำลองนี้สมมติว่าน้ำฝนทุกหยดไหลลงถัง แต่จริง ๆ มีน้ำระเหย กระเด็น และรางรั่ว ปริมาณจริงจึงน้อยกว่าที่คำนวณ'},
+{id:'heat',where:'e44',title:'ใต้ต้นไม้ร้อนน้อยกว่าลานคอนกรีตจริงไหม? — สถิติจากข้อมูลที่เก็บเอง',
+ ccc:'ความเสถียรและการเปลี่ยนแปลง · เหตุและผล',
+ ph:'เด็ก ๆ ชอบไปนั่งใต้ต้นไม้ตอนพักเที่ยง เพราะรู้สึกว่าเย็นกว่าลานคอนกรีต',
+ ask:'ตอนเที่ยง อุณหภูมิใต้ต้นไม้กับบนลานคอนกรีต ต่างกันเฉลี่ยกี่องศา?',
+ how:['ใช้เทอร์โมมิเตอร์อันเดียวกัน วัดสูงจากพื้นเท่ากัน (ประมาณระดับเอว)','วัดเวลาเดียวกันทุกวัน เช่น 12:00 น. ทั้งสองจุด อย่างน้อย 5 วัน','บันทึกในตาราง ระบบหาค่าเฉลี่ยและพิสัยให้','ห้ามแต่งตัวเลข ถ้าวันไหนไม่ได้วัด ให้เว้นว่าง'],
+ cols:['วันที่','ใต้ต้นไม้ (°C)','ลานคอนกรีต (°C)'],
+ rows:[['','',''],['','',''],['','',''],['','',''],['','','']],
+ calc:rows=>rows.map(r=>{const a=num(r[1]),b=num(r[2]);return a!=null&&b!=null?{x:r[0]||'-',y:a,y2:b}:null}).filter(Boolean),
+ ylab:'อุณหภูมิ (°C)',kind:'pair',
+ sum:p=>{if(!p.length)return'';const m=k=>r2(p.reduce((s,v)=>s+v[k],0)/p.length),rg=k=>r2(Math.max(...p.map(v=>v[k]))-Math.min(...p.map(v=>v[k])));return`ค่าเฉลี่ย ใต้ต้นไม้ <b>${m('y')}°C</b> · ลานคอนกรีต <b>${m('y2')}°C</b> · ต่างกัน <b>${r2(m('y2')-m('y'))}°C</b> · พิสัย ${rg('y')} และ ${rg('y2')} (${p.length} วัน)`},
+ codap:['ลากไฟล์ CSV ลงใน CODAP','ลาก "จุดวัด" ไปแกนนอน และ "อุณหภูมิ" ไปแกนตั้ง จะเห็นจุดสองกลุ่ม','เมนูไม้บรรทัด → เลือก Mean ดูเส้นค่าเฉลี่ยแต่ละกลุ่ม แล้วรวมข้อมูลทั้งห้องเทียบกัน'],
+ limit:'ข้อมูลไม่กี่วันในโรงเรียนเดียวบอกได้ว่า "ที่นี่ ช่วงนี้" ใต้ต้นไม้เย็นกว่าแค่ไหน แต่ยังสรุปเรื่องโลกร้อนไม่ได้ ต้องใช้ข้อมูลหลายสิบปีจากหลายพื้นที่'}
+];
+window.SELC1=KSelc({site:'m1',ctx:()=>window.M1DB?M1DB():{},place:w=>document.getElementById('t'+w),isT:c=>!!c.ISTEACHER,acts:SELC_M1});
+})();
+
 </script>
 </html>
