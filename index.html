@@ -2522,7 +2522,7 @@ rubric:{C:['ไม่มีหรือไม่ตรงคำถาม','ต�
 };
 if(typeof module!=='undefined')module.exports=PHBL1;
 
-/* ===== หน่วย PhBL ม.1: เส้นเรื่อง · กระดานคำถาม DQB · การ์ดบทเรียน · ครูปลดล็อกการตั้งชื่อ · ภาษาไล่ระดับสู่ CER · ลิขสิทธิ์ครูคุ้ม ===== */
+/* ===== หน่วย PhBL ม.1 v2: แท็บเนื้อหา/ภารกิจ · ภารกิจวันนี้ · รหัสสีช่วยจำ · กระดานคำถาม DQB · ปลดล็อกการตั้งชื่อ · ภาษาไล่ระดับสู่ CER · ลิขสิทธิ์ครูคุ้ม ===== */
 (function(){
 const U=PHBL1;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -2531,37 +2531,51 @@ const r2=x=>Math.round(x*100)/100;const fmt=x=>r2(x).toLocaleString('th-TH');
 const gcd=(a,b)=>{a=Math.abs(Math.round(a));b=Math.abs(Math.round(b));while(b){[a,b]=[b,a%b]}return a||1};
 const ctx=()=>(window.M1DB?window.M1DB():{})||{};const isT=()=>!!ctx().ISTEACHER;
 const ts=()=>window.firebase&&firebase.firestore?firebase.firestore.FieldValue.serverTimestamp():new Date();
-let OPEN=[];
+/* รหัสสีช่วยจำ: เรื่องคณิต 3 สี (ฟ้า/ส้ม/เขียว) · CER 3 สี (ม่วง/เขียวน้ำทะเล/ชมพู) · ปม = เหลือง · ไม่ซ้ำกัน */
+const TOPIC={b11:{name:'อัตราส่วน',ico:'🔵',c:'#2f7de1',page:'1.1'},b12:{name:'สัดส่วน',ico:'🟠',c:'#e8891c',page:'1.2'},b13:{name:'ร้อยละ',ico:'🟢',c:'#17a673',page:'1.3'}};
+const CER=[{k:'C',c:'#7c5ce0',ico:'💬',w:'ข้อกล่าวอ้าง'},{k:'E',c:'#0e9aa7',ico:'🔢',w:'หลักฐาน'},{k:'R',c:'#d9467f',ico:'🔗',w:'เหตุผล'}];
+let S={open:[],today:0,tab:'m'},MODE=null;
 const css=document.createElement('style');css.textContent=`
-.pb{margin:0 0 18px;border-radius:22px;padding:18px 20px;border:2px solid #2f7de1;background:color-mix(in srgb,#2f7de1 6%,transparent);text-align:left!important}
+.pb{--pc:#2f7de1;margin:0 0 16px;border-radius:22px;padding:18px 20px;border:2px solid var(--pc);background:color-mix(in srgb,var(--pc) 6%,transparent);text-align:left!important}
 .pb *{text-align:left}.pb h2,.pb h3{margin:0 0 6px}.pb h2::before,.pb h2::after,.pb h3::before,.pb h3::after{content:none!important;display:none!important}
-.pb h2{font-size:21px}.pb h3{font-size:18px}
-.pb .pb-tg{display:inline-block!important;width:auto!important;font-size:12.5px;font-weight:700;border-radius:999px;padding:1px 10px;margin:0 4px 6px 0;background:#2f7de1;color:#fff}
-.pb .pb-tg.pb-o{background:#f2a33a;color:#1d1830}.pb .pb-tg.pb-g{background:#17a673}
-.pb .pb-q{font-size:17px;font-weight:600;margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#f2a33a 16%,transparent);border-left:5px solid #f2a33a}
+.pb h2{font-size:22px}.pb h3{font-size:18px}
+.pb .pb-tg{display:inline-block!important;width:auto!important;font-size:12.5px;font-weight:700;border-radius:999px;padding:2px 10px;margin:0 4px 6px 0;background:var(--pc);color:#fff}
+.pb .pb-tg.pb-ok{background:#5b6475}.pb .pb-tg.pb-now{background:#1d2b4f}.pb .pb-tg.pb-y{background:#ffc93c;color:#1d1830}
+.pb .pb-q{font-size:17px;font-weight:600;margin:8px 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,#ffc93c 22%,transparent);border-left:6px solid #ffc93c}
 .pb .pb-map{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}@media(max-width:700px){.pb .pb-map{grid-template-columns:1fr 1fr}}
-.pb .pb-map a{display:block;text-decoration:none;color:inherit;border-radius:12px;padding:8px 10px;border:1px solid color-mix(in srgb,currentColor 18%,transparent);font-size:14px;line-height:1.35;min-height:44px}
-.pb .pb-map a b{display:block;font-size:13px;color:#2f7de1}.pb .pb-map a.pb-op{border-color:#17a673;background:color-mix(in srgb,#17a673 9%,transparent)}
+.pb .pb-map a{display:block;text-decoration:none;color:inherit;border-radius:12px;padding:8px 10px;border:2px solid color-mix(in srgb,var(--mc) 45%,transparent);border-top:6px solid var(--mc);font-size:14px;line-height:1.35;min-height:44px;background:color-mix(in srgb,var(--mc) 6%,transparent)}
+.pb .pb-map a b{display:block;font-size:13px;color:var(--mc)}.pb .pb-map a.pb-now{outline:3px solid #1d2b4f;outline-offset:1px}.pb .pb-map a.pb-done{opacity:.65}.pb .pb-map a.pb-lk{opacity:.45;border-style:dashed}
+.pb .pb-legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;margin-top:8px}.pb .pb-legend span{display:inline-flex;align-items:center;gap:5px}.pb .pb-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .pb .pb-box{margin-top:12px;border-radius:14px;padding:10px 12px;background:color-mix(in srgb,currentColor 4%,transparent)}
 .pb .pb-box>b{display:block;margin-bottom:4px}
+.pb .pb-step{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--pc);color:#fff;font-size:14px;margin-right:6px;vertical-align:-2px}
 .pb textarea,.pb input,.pb select{font:inherit;width:100%;box-sizing:border-box;border-radius:10px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit;padding:7px 9px;min-height:40px}
-.pb textarea{min-height:56px;display:block}.pb label{display:block!important;margin:6px 0 2px;font-size:14.5px}
+.pb textarea{min-height:56px;display:block}.pb label{display:block!important;margin:8px 0 2px;font-size:14.5px;font-weight:600}
 .pb .pb-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
 .pb button{font:inherit;min-height:42px;border-radius:12px;padding:7px 13px;cursor:pointer;border:1px solid color-mix(in srgb,currentColor 25%,transparent);background:transparent;color:inherit}
-.pb button.pb-p{background:#2f7de1;border-color:#2f7de1;color:#fff;font-weight:600}.pb button.pb-s{min-height:34px;padding:3px 9px;font-size:13.5px}
-.pb table{width:100%;border-collapse:collapse;font-size:14.5px}.pb td,.pb th{padding:4px;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent)}
+.pb button.pb-p{background:var(--pc);border-color:var(--pc);color:#fff;font-weight:600}.pb button.pb-s{min-height:34px;padding:3px 9px;font-size:13.5px}
+.pb table{width:100%;border-collapse:collapse;font-size:14.5px;table-layout:fixed}.pb td input{min-width:0}.pb td,.pb th{padding:4px;border-bottom:1px solid color-mix(in srgb,currentColor 12%,transparent)}
 .pb ol,.pb ul{margin:4px 0 0 20px;padding:0}.pb li{margin:2px 0}
-details.pb.ls{margin:0 0 12px;border-radius:16px;border:1.5px solid color-mix(in srgb,#2f7de1 45%,transparent);padding:4px 14px 12px;background:color-mix(in srgb,#2f7de1 4%,transparent)}
-details.pb.ls>summary{cursor:pointer;font-weight:700;padding:8px 0;min-height:40px}
-.pb .pb-lock{opacity:.8;font-size:14.5px;border:2px dashed color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:8px 10px}
-.pb .pb-formal{border:2px solid #17a673;border-radius:12px;padding:8px 10px;background:color-mix(in srgb,#17a673 8%,transparent)}
+details.pb.ls{padding:4px 14px 12px}details.pb.ls>summary{cursor:pointer;font-weight:700;padding:8px 0;min-height:40px;font-size:16.5px}
+details.pb.ls.pb-today{box-shadow:0 0 0 3px #1d2b4f}details.pb.ls.pb-done{background:color-mix(in srgb,#5b6475 5%,transparent);border-color:color-mix(in srgb,var(--pc) 40%,transparent)}
+.pb.pb-locked{opacity:.6;border-style:dashed;padding:12px 16px;font-weight:600}
+.pb .pb-lock{font-size:14.5px;border:2px dashed color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:8px 10px}
+.pb .pb-formal{border:2px solid var(--pc);border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--pc) 10%,transparent)}
 .pb .pb-res{margin-top:6px;font-size:15px;display:block!important}.pb-res b{display:inline!important}.pb .pb-msg{font-size:14px;opacity:.85;margin-top:4px}
-.pb .pb-c1{color:#17a673}.pb .pb-c2{color:#2f7de1}.pb .pb-c3{color:#e07a1f}
-.pb .pb-dq{display:grid;gap:6px;margin-top:8px}.pb .pb-dq .pb-it{border-radius:12px;padding:8px 10px;border:1px solid color-mix(in srgb,currentColor 15%,transparent);display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
-.pb .pb-dq .pb-it.pb-pin{border-color:#f2a33a;background:color-mix(in srgb,#f2a33a 10%,transparent)}.pb .pb-dq .pb-it.pb-ans{opacity:.75}
+.pb .pb-out{font-size:14px;margin-top:4px;font-weight:600}
+.pb .pb-dq{display:grid;gap:6px;margin-top:8px}.pb .pb-dq .pb-it{border-radius:12px;padding:8px 10px;border:1px solid color-mix(in srgb,currentColor 15%,transparent);display:flex;gap:8px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;border-left:5px solid #ffc93c}
+.pb .pb-dq .pb-it.pb-pin{background:color-mix(in srgb,#ffc93c 14%,transparent)}.pb .pb-dq .pb-it.pb-ans{opacity:.7;border-left-color:#5b6475}
 .pb .pb-dq small{opacity:.7}.pb .pb-grp{font-weight:700;margin-top:8px;font-size:14.5px}
-.pb .pb-tnote{font-size:13.5px;border-radius:10px;padding:6px 9px;background:color-mix(in srgb,#f2a33a 14%,transparent);margin-top:6px}`;document.head.appendChild(css);
-
+.pb .pb-tnote{font-size:13.5px;border-radius:10px;padding:6px 9px;background:color-mix(in srgb,#ffc93c 18%,transparent);margin-top:6px}
+.pb-tabs{display:flex!important;gap:8px;flex-wrap:wrap;margin:0 0 14px!important;padding:8px!important;border-radius:18px!important}
+.pb-tabs button{flex:1 1 200px;font:inherit;font-weight:700;font-size:15.5px;min-height:48px;border-radius:14px;cursor:pointer;border:2px solid color-mix(in srgb,currentColor 18%,transparent);background:transparent;color:inherit}
+.pb-tabs button[aria-pressed="true"]{background:var(--pc);border-color:var(--pc);color:#fff}
+.pb-link{padding:10px 16px!important;font-size:14.5px}
+.pb-mode-m>:not(.pb){display:none!important}
+.pb-mode-c>.pb:not(.pb-tabs):not(.pb-link){display:none!important}.pb-mode-m>.pb-link{display:none!important}
+#tabb11{box-shadow:inset 0 -4px 0 #2f7de1}#tabb12{box-shadow:inset 0 -4px 0 #e8891c}#tabb13{box-shadow:inset 0 -4px 0 #17a673}`;document.head.appendChild(css);
+const topicOf=l=>TOPIC[l.where];
+const stOf=n=>{if(!S.today||isT())return n===S.today?'now':'free';return n<S.today?'done':n===S.today?'now':'lock'};
 /* ---------- เครื่องคิด (แสดงผลหลังครูปลดล็อก) ---------- */
 const CALC={
  ratio2:rows=>rows.filter(r=>num(r[1])>0&&num(r[2])>0).map(r=>{const a=num(r[1]),b=num(r[2]),g=gcd(a,b);return`${esc(r[0])}: แข็ง : เขียว = ${a} : ${b}${g>1&&Number.isInteger(a)&&Number.isInteger(b)?` = <b>${a/g} : ${b/g}</b>`:''} ≈ <b>${r2(a/b)} : 1</b>`}).join('<br>'),
@@ -2573,8 +2587,6 @@ const CALC={
   let s=`น้ำฝนทั้งหมด ${fmt(W)} ลิตร · ตอนนี้ (คอนกรีตทั้งลาน) น้ำเหลือ <b>${fmt(cur)} ลิตร</b><table><tr><th>เปลี่ยนพื้น</th><th>น้ำเหลือบนลาน (ลิตร)</th><th>เทียบกับตอนนี้</th></tr>`;
   for(let f=0;f<=100;f+=20){const v=W*((1-f/100)*c+(f/100)*n);s+=`<tr><td>${f}%</td><td>${fmt(v)}</td><td>${cur?fmt(v/cur*100)+'%':'–'}</td></tr>`}s+='</table>';
   if(t!=null&&t>=0&&t<=100&&an>ac){const f=c*(1-t/100)/(c-n)*100;s+=f<=100?`เป้า: น้ำเหลือไม่เกิน ${fmt(t)}% ของตอนนี้ → ต้องเปลี่ยนพื้นอย่างน้อย <b>${fmt(Math.ceil(f*100)/100)}%</b> ของลาน`:`เป้า ${fmt(t)}% ทำไม่ได้แม้เปลี่ยนทั้งลาน (เปลี่ยนทั้งลานเหลือ ${fmt(n/c*100)}%)`}else if(an<=ac)s+='พื้นใหม่ต้องซึมน้ำได้มากกว่าคอนกรีต';return s}};
-const BLANK=['','',''];
-
 /* ---------- กระดาน DQB ---------- */
 let DQ=[],dqCls='';
 async function dqLoad(){const c=ctx();if(!c.DB||!c.U){DQ=[];return}try{DQ=await c.DB.q('dqb',[['unit','==',U.id]])}catch(e){DQ=null}}
@@ -2583,7 +2595,7 @@ function dqHTML(){const c=ctx(),T=isT();if(!c.U)return'<p class="pb-msg">เข�
  const L=DQ.filter(x=>x.status!=='hidden'&&(!cls||x.cls===cls));const g=(n,a)=>a.length?`<div class="pb-grp">${n} (${a.length})</div>`+a.map(it).join(''):'';
  return(T?`<div class="pb-row"><select class="pb-dqc" aria-label="เลือกห้อง"><option value="">ทุกห้อง</option>${classes.map(x=>`<option ${x===dqCls?'selected':''}>${esc(x)}</option>`).join('')}</select></div>`:'')+
   `<div class="pb-dq">${g('📌 ปักหมุดโดยครู',L.filter(x=>x.pin&&x.status!=='answered'))}${g('❓ ยังตามหาคำตอบ',L.filter(x=>!x.pin&&x.status!=='answered'))}${g('✅ ตอบได้แล้ว',L.filter(x=>x.status==='answered'))}${L.length?'':'<p class="pb-msg">ยังไม่มีคำถาม เริ่มเพิ่มคำถามแรกได้เลย</p>'}</div>`;
- function it(x){return`<div class="pb-it ${x.pin?'pb-pin':''} ${x.status==='answered'?'pb-ans':''}" data-id="${esc(x.id)}"><div><div>${esc(x.q)}</div><small>${x.lesson?'จากบท '+esc(x.lesson)+' · ':''}${esc(x.cls||'')}${x.status==='answered'&&x.ansIn?' · ตอบได้ในบท '+esc(x.ansIn):''}${T?' · '+esc(x.name||''):''}</small></div>${T?`<div class="pb-row" style="margin:0"><button type="button" class="pb-s" data-a="pin">${x.pin?'เลิกปักหมุด':'ปักหมุด'}</button><select class="pb-s" data-a="ans" aria-label="ตอบได้ในบท" style="width:auto;min-height:34px"><option value="">ตอบได้ในบท…</option>${U.lessons.map(l=>`<option value="${l.n}" ${+x.ansIn===l.n?'selected':''}>บท ${l.n}</option>`).join('')}<option value="0">ยังไม่ได้ตอบ</option></select><button type="button" class="pb-s" data-a="hide" aria-label="ซ่อนคำถามนี้">ซ่อน</button></div>`:''}</div>`}}
+ function it(x){return`<div class="pb-it ${x.pin?'pb-pin':''} ${x.status==='answered'?'pb-ans':''}" data-id="${esc(x.id)}"><div><div>${esc(x.q)}</div><small>${x.lesson?'จากภารกิจที่ '+esc(x.lesson)+' · ':''}${esc(x.cls||'')}${x.status==='answered'&&x.ansIn?' · ตอบได้ในภารกิจที่ '+esc(x.ansIn):''}${T?' · '+esc(x.name||''):''}</small></div>${T?`<div class="pb-row" style="margin:0"><button type="button" class="pb-s" data-a="pin">${x.pin?'เลิกปักหมุด':'ปักหมุด'}</button><select class="pb-s" data-a="ans" aria-label="ตอบได้ในภารกิจที่" style="width:auto;min-height:34px"><option value="">ตอบได้ในภารกิจที่…</option>${U.lessons.map(l=>`<option value="${l.n}" ${+x.ansIn===l.n?'selected':''}>ภารกิจที่ ${l.n}</option>`).join('')}<option value="0">ยังไม่ได้ตอบ</option></select><button type="button" class="pb-s" data-a="hide" aria-label="ซ่อนคำถามนี้">ซ่อน</button></div>`:''}</div>`}}
 function dqBind(root){const c=ctx();const s=root.querySelector('.pb-dqc');if(s)s.onchange=()=>{dqCls=s.value;dqDraw()};
  root.querySelectorAll('.pb-dq .pb-it').forEach(el=>{const id=el.dataset.id;el.querySelectorAll('[data-a]').forEach(b=>{const act=b.dataset.a,go=async d=>{try{await c.DB.set('dqb/'+id,d,true);Object.assign(DQ.find(x=>x.id===id),d);dqDraw()}catch(e){alert('บันทึกไม่ได้')}};
   if(act==='pin')b.onclick=()=>go({pin:!DQ.find(x=>x.id===id).pin});if(act==='hide')b.onclick=()=>{if(confirm('ซ่อนคำถามนี้จากกระดาน?'))go({status:'hidden'})};if(act==='ans')b.onchange=()=>go(b.value&&b.value!=='0'?{status:'answered',ansIn:+b.value}:{status:'open',ansIn:null})})})}
@@ -2591,58 +2603,80 @@ function dqDraw(){document.querySelectorAll('.pb-dqw').forEach(w=>{w.innerHTML=d
 async function dqAdd(q,lesson,msg){const c=ctx();q=String(q||'').trim().slice(0,200);if(!q)return;if(!c.DB||!c.U||!c.ME){msg.textContent='เข้าสู่ระบบก่อนจึงจะเพิ่มคำถามได้';return}
  try{const d={unit:U.id,site:'m1',uid:c.U.uid,name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',q,lesson:lesson||null,status:'open',pin:false,time:ts()};const r=await c.DB.add('dqb',d);DQ=(DQ||[]).concat([{id:r&&r.id||String(Date.now()),...d}]);dqDraw();msg.textContent='เพิ่มคำถามบนกระดานแล้ว ✓'}catch(e){msg.textContent='เพิ่มไม่สำเร็จ ลองใหม่อีกครั้ง'}}
 
-/* ---------- แผงเส้นเรื่อง ---------- */
-function panel(){const L=document.getElementById('tb11');if(!L||L.querySelector('.pb-main'))return;const s=document.createElement('section');s.className='pb pb-main';s.id='pbMain';
- s.innerHTML=`<div><span class="pb-tg">PhBL · เส้นเรื่องของหน่วย</span><span class="pb-tg pb-g">STEM·SELC</span></div><h2>🌧️ ${esc(U.name)}</h2>
- <p style="margin:0">${esc(U.phenomenon)}</p><div class="pb-q">คำถามของหน่วย: ${esc(U.question)}</div>
- <p class="pb-msg" style="margin:0"><b>ปลายหน่วย:</b> ${esc(U.product)}</p>
- <div class="pb-map">${U.lessons.map(l=>`<a href="#pbL${l.n}" class="${OPEN.includes(l.n)?'pb-op':''}" data-go="${l.n}"><b>บท ${l.n} · ${l.periods} คาบ</b>${esc(l.title)}</a>`).join('')}</div>
- <div class="pb-box"><b>🗂️ กระดานคำถามของห้อง (Driving Question Board)</b><p class="pb-msg" style="margin:0 0 6px">คำถามที่เราอยากรู้เพื่อตอบคำถามของหน่วย ทุกบทจะกลับมาดูว่าตอบข้อไหนได้แล้ว และมีคำถามใหม่อะไรเพิ่ม</p>
- <div class="pb-row"><input class="pb-dqi" maxlength="200" placeholder="พิมพ์คำถามของเรา เช่น ลานกว้างเท่าไร / ท่อระบายน้ำอยู่ตรงไหน" aria-label="คำถามใหม่"><button type="button" class="pb-p pb-dqb">เพิ่มคำถาม</button></div><p class="pb-msg pb-dqm"></p><div class="pb-dqw"></div></div>`;
- L.prepend(s);s.querySelector('.pb-dqb').onclick=()=>{const i=s.querySelector('.pb-dqi');dqAdd(i.value,null,s.querySelector('.pb-dqm')).then(()=>{i.value=''})};
- s.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();go(+a.dataset.go)})}
-function go(n){const l=U.lessons.find(x=>x.n===n);const tab=document.getElementById('tab'+l.where);if(tab&&document.getElementById('t'+l.where).hidden)tab.click();setTimeout(()=>{const d=document.getElementById('pbL'+n);if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}},120)}
-function banner(where){const L=document.getElementById('t'+where);if(!L||L.querySelector('.pb-ban'))return;const s=document.createElement('section');s.className='pb pb-ban';
- s.innerHTML=`<div><span class="pb-tg">PhBL · ต่อเส้นเรื่อง</span></div><h3>🌧️ ${esc(U.name)}</h3><p class="pb-msg" style="margin:0">${esc(U.question)}</p><div class="pb-row"><button type="button" class="pb-back">ดูเส้นเรื่องและกระดานคำถาม</button></div>`;
- L.prepend(s);s.querySelector('.pb-back').onclick=()=>{document.getElementById('tabb11').click();setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)}}
 
-/* ---------- การ์ดบทเรียน ---------- */
+/* ---------- แท็บ: เนื้อหาบทเรียน / ภารกิจ ---------- */
+const WHERE=['b11','b12','b13'];
+function curMode(){if(MODE)return MODE;try{const m=sessionStorage.getItem('pb1-mode');if(m==='m'||m==='c')return m}catch(e){}return S.tab==='c'?'c':'m'}
+function setMode(m){MODE=m;try{sessionStorage.setItem('pb1-mode',m)}catch(e){}applyMode()}
+function applyMode(){const m=curMode();WHERE.forEach(w=>{const h=document.getElementById('t'+w);if(!h)return;h.classList.toggle('pb-mode-m',m==='m');h.classList.toggle('pb-mode-c',m==='c');h.querySelectorAll('.pb-tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)))})}
+function tabs(w){const h=document.getElementById('t'+w);if(!h||h.querySelector('.pb-tabs'))return;const t=TOPIC[w];const d=document.createElement('div');d.className='pb pb-tabs';d.style.setProperty('--pc',t.c);d.setAttribute('role','group');d.setAttribute('aria-label','เลือกสิ่งที่จะดู');
+ d.innerHTML=`<button type="button" data-m="m">🌧️ ภารกิจลานน้ำขัง</button><button type="button" data-m="c">📖 เนื้อหาบทเรียน ${t.page} · ${t.ico} ${t.name}</button>`;
+ h.prepend(d);d.querySelectorAll('button').forEach(b=>b.onclick=()=>{setMode(b.dataset.m);d.scrollIntoView({behavior:'smooth',block:'start'})})}
+function link(w){const h=document.getElementById('t'+w);if(!h||h.querySelector('.pb-link'))return;const t=TOPIC[w],ns=U.lessons.filter(l=>l.where===w).map(l=>l.n);const s=document.createElement('div');s.className='pb pb-link';s.style.setProperty('--pc',t.c);
+ s.innerHTML=`${t.ico} <b>เรื่อง${t.name}ในหน้านี้</b> ใช้ใน<b> ภารกิจที่ ${ns.length>1?ns[0]+'–'+ns[ns.length-1]:ns[0]}</b> ของเรื่องลานน้ำขัง · กดแท็บ 🌧️ เพื่อกลับไปทำภารกิจ`;
+ h.querySelector('.pb-tabs').after(s)}
+
+/* ---------- แผงเส้นเรื่อง ---------- */
+function stLabel(n){const s=stOf(n);return s==='done'?'✓ ทำแล้ว':s==='now'?'⭐ วันนี้':s==='lock'?'🔒 ยังไม่ถึง':''}
+function panel(){const L=document.getElementById('tb11');if(!L||L.querySelector('.pb-main'))return;const s=document.createElement('section');s.className='pb pb-main';s.id='pbMain';const T=isT();
+ s.innerHTML=`<div><span class="pb-tg">PhBL · เรื่องเดียวทั้งหน่วย</span><span class="pb-tg pb-y">8 ภารกิจ · 12 คาบ</span></div><h2>🌧️ ${esc(U.name)}</h2>
+ <p style="margin:0">${esc(U.phenomenon)}</p><div class="pb-q">❓ คำถามใหญ่ของเรา: ${esc(U.question)}</div>
+ <p class="pb-msg" style="margin:0"><b>ปลายทาง:</b> ${esc(U.product)}</p>
+ <div class="pb-map">${U.lessons.map(l=>{const t=topicOf(l),st=stOf(l.n);return`<a href="#pbL${l.n}" style="--mc:${t.c}" class="${st==='now'?'pb-now':st==='done'?'pb-done':st==='lock'?'pb-lk':''}" data-go="${l.n}"><b>${t.ico} ภารกิจที่ ${l.n} ${stLabel(l.n)}</b>${esc(l.title)}</a>`}).join('')}</div>
+ <div class="pb-legend"><b>สีช่วยจำ:</b>${Object.values(TOPIC).map(t=>`<span><i style="background:${t.c}"></i>${t.name}</span>`).join('')}<span><i style="background:#ffc93c"></i>ปม/คำถาม</span>${CER.map(x=>`<span><i style="background:${x.c}"></i>${x.ico} ${x.w}</span>`).join('')}</div>
+ ${T?`<div class="pb-box pb-tset"><b>⚙️ ครูตั้งค่า (นักเรียนไม่เห็นส่วนนี้)</b><div class="pb-row"><label style="margin:0;font-weight:400">ภารกิจวันนี้ <select class="pb-today" style="width:auto">${['<option value="0">ไม่กำหนด (เปิดทุกภารกิจ)</option>'].concat(U.lessons.map(l=>`<option value="${l.n}" ${S.today===l.n?'selected':''}>ภารกิจที่ ${l.n}</option>`)).join('')}</select></label>
+ <label style="margin:0;font-weight:400">แท็บที่เด็กเห็นก่อน <select class="pb-deftab" style="width:auto"><option value="m" ${S.tab!=='c'?'selected':''}>🌧️ ภารกิจ</option><option value="c" ${S.tab==='c'?'selected':''}>📖 เนื้อหาบทเรียน</option></select></label></div><p class="pb-msg pb-tmsg"></p></div>`:''}
+ <div class="pb-box"><b>🗂️ กระดานคำถามของห้อง</b><p class="pb-msg" style="margin:0 0 6px">อยากรู้อะไรเพื่อตอบคำถามใหญ่ เขียนไว้ที่นี่ ทุกภารกิจเราจะกลับมาดูว่าตอบข้อไหนได้แล้ว</p>
+ <div class="pb-row"><input class="pb-dqi" maxlength="200" placeholder="เช่น ลานกว้างเท่าไร / ท่อระบายน้ำอยู่ตรงไหน" aria-label="คำถามใหม่"><button type="button" class="pb-p pb-dqb">เพิ่มคำถาม</button></div><p class="pb-msg pb-dqm"></p><div class="pb-dqw"></div></div>`;
+ L.querySelector('.pb-tabs').after(s);s.querySelector('.pb-dqb').onclick=()=>{const i=s.querySelector('.pb-dqi');dqAdd(i.value,null,s.querySelector('.pb-dqm')).then(()=>{i.value=''})};
+ s.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();go(+a.dataset.go)});
+ const save=async d=>{const m=s.querySelector('.pb-tmsg');try{await ctx().DB.set('settings/m1phbl',d,true);Object.assign(S,d);m.textContent='บันทึกแล้ว ✓';rebuild()}catch(e){m.textContent='บันทึกไม่ได้'}};
+ const td=s.querySelector('.pb-today');if(td)td.onchange=()=>save({today:+td.value});const dt=s.querySelector('.pb-deftab');if(dt)dt.onchange=()=>save({tab:dt.value})}
+function go(n){const l=U.lessons.find(x=>x.n===n);const tab=document.getElementById('tab'+l.where);if(tab&&document.getElementById('t'+l.where).hidden)tab.click();setMode('m');setTimeout(()=>{const d=document.getElementById('pbL'+n);if(d){if(d.tagName==='DETAILS')d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}},120)}
+function banner(w){const L=document.getElementById('t'+w);if(!L||L.querySelector('.pb-ban'))return;const t=TOPIC[w];const s=document.createElement('section');s.className='pb pb-ban';s.style.setProperty('--pc',t.c);
+ s.innerHTML=`<div><span class="pb-tg">${t.ico} ช่วง${t.name}</span></div><h3>🌧️ ${esc(U.name)}</h3><div class="pb-q" style="margin:4px 0">❓ ${esc(U.question)}</div><div class="pb-row"><button type="button" class="pb-back">🗂️ ดูแผนที่ภารกิจและกระดานคำถาม</button></div>`;
+ L.querySelector('.pb-tabs').after(s);s.querySelector('.pb-back').onclick=()=>{document.getElementById('tabb11').click();setMode('m');setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)}}
+
+/* ---------- การ์ดภารกิจ ---------- */
 const lkey=n=>{const c=ctx();return'pb1-'+(c.U&&c.U.uid||'guest')+'-'+n};
 const load=n=>{try{return JSON.parse(localStorage.getItem(lkey(n))||'null')}catch(e){return null}};
 const saveL=(n,st)=>{try{localStorage.setItem(lkey(n),JSON.stringify(st))}catch(e){}};
-function card(l){const host=document.getElementById('t'+l.where);if(!host||host.querySelector('#pbL'+l.n))return;
- let st=load(l.n)||{rows:l.tool?l.tool.rows.map(r=>r.slice()):[]};const lab=U.lang[l.lv],open=OPEN.includes(l.n),T=isT();
- const F=(k,t,cl)=>`<label for="pb${l.n}${k}" class="${cl||''}">${esc(t)}</label><textarea id="pb${l.n}${k}" data-k="${k}">${esc(st[k]||'')}</textarea>`;
- const d=document.createElement('details');d.className='pb ls';d.id='pbL'+l.n;
- d.innerHTML=`<summary>บท ${l.n} · ${esc(l.title)} <span class="pb-tg ${open?'pb-g':'pb-o'}" style="margin-left:6px">${open?'ครูเปิดการตั้งชื่อแล้ว':'ลองเองก่อน'}</span></summary>
- <div class="pb-q">ปมของบทนี้: ${esc(l.knot)}</div>
- <div class="pb-box"><b>1) ทบทวน</b>ย้อนดูกระดานคำถาม ข้อไหนเกี่ยวกับบทนี้ <button type="button" class="pb-s pb-show">เปิดกระดาน</button></div>
- <div class="pb-box"><b>2) ลองเอง (ยังไม่ต้องใช้สูตร)</b><ol>${l.try.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
+function after(host,l){return[...host.querySelectorAll('.pb-mis')].pop()||host.querySelector('#pbMain')||host.querySelector('.pb-ban')}
+function card(l){const host=document.getElementById('t'+l.where);if(!host||host.querySelector('#pbL'+l.n))return;const t=topicOf(l),stt=stOf(l.n);
+ if(stt==='lock'){const x=document.createElement('div');x.className='pb pb-locked pb-mis';x.id='pbL'+l.n;x.style.setProperty('--pc',t.c);x.textContent=`🔒 ภารกิจที่ ${l.n} · ${l.title} — ครูจะเปิดเมื่อถึงคาบนี้`;after(host,l).after(x);return}
+ let st=load(l.n)||{rows:l.tool?l.tool.rows.map(r=>r.slice()):[]};const lab=U.lang[l.lv],open=S.open.includes(l.n),T=isT();
+ const F=(k,txt,col,ico)=>`<label for="pb${l.n}${k}" style="${col?`color:${col}`:''}">${ico?ico+' ':''}${esc(txt)}</label><textarea id="pb${l.n}${k}" data-k="${k}" style="${col?`border-left:5px solid ${col}`:''}">${esc(st[k]||'')}</textarea>`;
+ const d=document.createElement('details');d.className='pb ls pb-mis'+(stt==='now'?' pb-today':stt==='done'?' pb-done':'');d.id='pbL'+l.n;d.style.setProperty('--pc',t.c);if(stt==='now')d.open=true;
+ d.innerHTML=`<summary>${t.ico} ภารกิจที่ ${l.n} · ${esc(l.title)} ${stt==='now'?'<span class="pb-tg pb-now">⭐ วันนี้</span>':stt==='done'?'<span class="pb-tg pb-ok">✓ ทำแล้ว</span>':''}<span class="pb-tg">${t.name}</span></summary>
+ <div class="pb-q">❓ ปมของภารกิจนี้: ${esc(l.knot)}</div>
+ <div class="pb-box"><b><span class="pb-step">1</span>ทบทวน</b>คำถามบนกระดานข้อไหนที่ภารกิจนี้จะช่วยตอบ? <button type="button" class="pb-s pb-show">🗂️ เปิดกระดาน</button></div>
+ <div class="pb-box"><b><span class="pb-step">2</span>ลองเองก่อน (ยังไม่ต้องใช้สูตร)</b><ol>${l.try.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>
  ${l.tool?`<div style="overflow-x:auto;margin-top:8px"><table><tr>${l.tool.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr><tbody class="pb-tb">${st.rows.map((r,i)=>`<tr>${l.tool.cols.map((c,j)=>`<td>${j===0&&l.tool.rows[i]&&l.tool.rows[i][0]?esc(r[0]):`<input ${j?'type="number" step="any" inputmode="decimal"':''} data-i="${i}" data-j="${j}" value="${esc(r[j]??'')}" aria-label="${esc(c)} แถว ${i+1}">`}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:''}
- ${F('method','วิธีคิดของกลุ่มเรา (เขียนหรืออธิบายวิธีที่คิดเอง)')}</div>
- <div class="pb-box"><b>3–4) นำเสนอ เทียบวิธี แล้วครูตั้งชื่อ</b>${open||T?`<div class="pb-formal"><b>สิ่งที่เราเพิ่งค้นพบ มีชื่อเรียกว่า</b><br>${esc(l.formal)}</div>${l.tool?`<div class="pb-res pb-res"></div>`:''}`:`<div class="pb-lock">🔒 ครูจะเปิดส่วนนี้หลังทุกกลุ่มลองเองและนำเสนอแล้ว${l.tool?' (รวมถึงผลคำนวณอัตโนมัติ)':''}</div>`}
+ ${F('method','วิธีคิดของกลุ่มเรา (เขียนวิธีที่คิดเอง)')}</div>
+ <div class="pb-box"><b><span class="pb-step">3</span>นำเสนอ เทียบวิธีกับเพื่อน <span class="pb-step" style="margin-left:6px">4</span>ครูตั้งชื่อ</b>${open||T?`<div class="pb-formal"><b>${t.ico} สิ่งที่เราเพิ่งค้นพบ มีชื่อเรียกว่า</b><br>${esc(l.formal)}</div>${l.tool?`<div class="pb-res"></div>`:''}<div class="pb-row"><button type="button" class="pb-s pb-goc">📖 ไปฝึกเรื่อง${t.name}ต่อในเนื้อหาบทเรียน ${t.page}</button></div>`:`<div class="pb-lock">🔒 ครูจะเปิดส่วนนี้หลังทุกกลุ่มลองเองและนำเสนอแล้ว${l.tool?' (รวมถึงผลคำนวณอัตโนมัติ)':''}</div>`}
  ${T?`<div class="pb-row"><button type="button" class="pb-s pb-unlock">${open?'🔒 ปิดการตั้งชื่ออีกครั้ง':'🔓 ปลดล็อกการตั้งชื่อ (ครู)'}</button><span class="pb-msg">ครูเท่านั้นที่เห็นปุ่มนี้</span></div><div class="pb-tnote"><b>ครูระวัง:</b> ${esc(l.stuck)}<br><b>คำถามกระตุ้น:</b> ${l.probe.map(esc).join(' · ')}</div>`:''}</div>
- <div class="pb-box"><b>5) อธิบายและตั้งคำถามถัดไป</b>${l.lv>=3?`<p class="pb-msg" style="margin:0">${esc(U.langNote[l.lv])}</p>`:''}
- ${F('C',lab[0],'pb-c1')}${F('E',lab[1],'pb-c2')}${F('R',lab[2],'pb-c3')}${l.lv>=4?F('lim','หลักฐานของเรายังบอกอะไรไม่ได้'):''}
- ${F('find','ข้อค้นพบของบทนี้ใน 1 ประโยค')}
- <label for="pb${l.n}nq">คำถามใหม่ที่เกิดขึ้น (จะขึ้นบนกระดาน)</label><div class="pb-row" style="margin-top:0"><input id="pb${l.n}nq" class="pb-nq" maxlength="200" placeholder="${esc(l.next)}"><button type="button" class="pb-s pb-nqb">ส่งขึ้นกระดาน</button></div>
- <div class="pb-row"><button type="button" class="pb-p pb-send">ส่งงานบทนี้ให้ครู</button></div><p class="pb-msg pb-msg"></p></div>`;
- const after=l.n===1?host.querySelector('#pbMain'):[...host.querySelectorAll('details.pb.ls')].pop()||host.querySelector('.pb-ban');if(after)after.after(d);else host.prepend(d);
+ <div class="pb-box"><b><span class="pb-step">5</span>อธิบาย และตั้งคำถามถัดไป</b>${l.lv>=3?`<p class="pb-msg" style="margin:0">${esc(U.langNote[l.lv])}</p>`:''}
+ ${F('C',lab[0],CER[0].c,CER[0].ico)}${F('E',lab[1],CER[1].c,CER[1].ico)}${F('R',lab[2],CER[2].c,CER[2].ico)}${l.lv>=4?F('lim','หลักฐานของเรายังบอกอะไรไม่ได้',null,'⚠️'):''}
+ ${F('find','ข้อค้นพบของภารกิจนี้ใน 1 ประโยค',null,'✨')}
+ <label for="pb${l.n}nq">🗂️ คำถามใหม่ที่เกิดขึ้น (จะขึ้นบนกระดาน)</label><div class="pb-row" style="margin-top:0"><input id="pb${l.n}nq" class="pb-nq" maxlength="200" placeholder="${esc(l.next)}"><button type="button" class="pb-s pb-nqb">ส่งขึ้นกระดาน</button></div>
+ <div class="pb-row"><button type="button" class="pb-p pb-send">ส่งงานภารกิจนี้ให้ครู</button></div><p class="pb-out"></p></div>`;
+ after(host,l).after(d);
  const draw=()=>{const r=d.querySelector('.pb-res');if(r&&l.tool)r.innerHTML=CALC[l.tool.calc](st.rows)||'<span class="pb-msg">กรอกข้อมูลในตารางให้ครบ แล้วผลจะขึ้นที่นี่</span>';saveL(l.n,st)};draw();
- const tb=d.querySelector('.pb-tb');if(tb)tb.addEventListener('input',e=>{const t=e.target;if(t.dataset.i==null)return;st.rows[+t.dataset.i][+t.dataset.j]=t.value;draw()});
- d.querySelectorAll('textarea[data-k]').forEach(t=>t.oninput=()=>{st[t.dataset.k]=t.value;saveL(l.n,st)});
- d.querySelector('.pb-show').onclick=()=>{document.getElementById('tabb11').click();setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)};
- const msg=d.querySelector('.pb-msg');d.querySelector('.pb-nqb').onclick=()=>{const i=d.querySelector('.pb-nq');dqAdd(i.value,l.n,msg).then(()=>{i.value=''})};
- const ub=d.querySelector('.pb-unlock');if(ub)ub.onclick=async()=>{const c=ctx();const nx=OPEN.includes(l.n)?OPEN.filter(x=>x!==l.n):OPEN.concat([l.n]);try{await c.DB.set('settings/m1phbl',{open:nx},true);OPEN=nx;rebuild()}catch(e){alert('บันทึกไม่ได้')}};
+ const tb=d.querySelector('.pb-tb');if(tb)tb.addEventListener('input',e=>{const x=e.target;if(x.dataset.i==null)return;st.rows[+x.dataset.i][+x.dataset.j]=x.value;draw()});
+ d.querySelectorAll('textarea[data-k]').forEach(x=>x.oninput=()=>{st[x.dataset.k]=x.value;saveL(l.n,st)});
+ d.querySelector('.pb-show').onclick=()=>{document.getElementById('tabb11').click();setMode('m');setTimeout(()=>document.getElementById('pbMain').scrollIntoView({behavior:'smooth'}),120)};
+ const gc=d.querySelector('.pb-goc');if(gc)gc.onclick=()=>{setMode('c');setTimeout(()=>host.querySelector('.pb-tabs').scrollIntoView({behavior:'smooth',block:'start'}),60)};
+ const msg=d.querySelector('.pb-out');d.querySelector('.pb-nqb').onclick=()=>{const i=d.querySelector('.pb-nq');dqAdd(i.value,l.n,msg).then(()=>{i.value=''})};
+ const ub=d.querySelector('.pb-unlock');if(ub)ub.onclick=async()=>{const nx=S.open.includes(l.n)?S.open.filter(x=>x!==l.n):S.open.concat([l.n]);try{await ctx().DB.set('settings/m1phbl',{open:nx},true);S.open=nx;rebuild()}catch(e){alert('บันทึกไม่ได้')}};
  d.querySelector('.pb-send').onclick=async()=>{const c=ctx();if(!(st.C&&st.E)){msg.textContent='เขียนช่องอธิบายอย่างน้อย 2 ช่องแรกก่อนส่งนะ';return}if(!c.DB||!c.U||!c.ME){msg.textContent='เข้าสู่ระบบก่อนจึงจะส่งได้ (งานยังเก็บไว้ในเครื่อง)';return}msg.textContent='กำลังส่ง…';
-  try{await c.DB.set('selc/'+c.U.uid+'_m1_phbl1-L'+l.n,{uid:c.U.uid,sid:c.ME.sid||'',name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',site:'m1',act:'phbl1-L'+l.n,title:'บท '+l.n+' '+l.title,lv:l.lv,method:st.method||'',C:st.C||'',E:st.E||'',R:st.R||'',lim:st.lim||'',find:st.find||'',pre:st.method||'',rows:JSON.stringify(st.rows||[]),time:ts()},true);msg.textContent='ส่งให้ครูแล้ว ✓ แก้แล้วส่งซ้ำได้'}catch(e){msg.textContent='ส่งไม่สำเร็จ ลองใหม่อีกครั้ง (งานยังเก็บไว้ในเครื่อง)'}}}
+  try{await c.DB.set('selc/'+c.U.uid+'_m1_phbl1-L'+l.n,{uid:c.U.uid,sid:c.ME.sid||'',name:c.ME.name||'',cls:c.ME.cls||'',no:c.ME.no||'',site:'m1',act:'phbl1-L'+l.n,title:'ภารกิจที่ '+l.n+' '+l.title,lv:l.lv,method:st.method||'',C:st.C||'',E:st.E||'',R:st.R||'',lim:st.lim||'',find:st.find||'',pre:st.method||'',rows:JSON.stringify(st.rows||[]),time:ts()},true);msg.textContent='ส่งให้ครูแล้ว ✓ แก้แล้วส่งซ้ำได้'}catch(e){msg.textContent='ส่งไม่สำเร็จ ลองใหม่อีกครั้ง (งานยังเก็บไว้ในเครื่อง)'}}}
 
 function rebuild(){document.querySelectorAll('.pb').forEach(x=>x.remove());build()}
-function build(){panel();['b12','b13'].forEach(banner);U.lessons.forEach(l=>{try{card(l)}catch(e){console.error('phbl',l.n,e)}});dqDraw()}
-async function init(){const c=ctx();try{const s=c.DB&&c.DB.get?await c.DB.get('settings/m1phbl'):null;OPEN=(s&&s.open)||[]}catch(e){OPEN=[]}await dqLoad();rebuild()}
+function build(){WHERE.forEach(tabs);WHERE.forEach(link);panel();['b12','b13'].forEach(banner);U.lessons.forEach(l=>{try{card(l)}catch(e){console.error('phbl',l.n,e)}});dqDraw();applyMode()}
+async function init(){const c=ctx();try{const s=c.DB&&c.DB.get?await c.DB.get('settings/m1phbl'):null;S={open:(s&&s.open)||[],today:(s&&+s.today)||0,tab:(s&&s.tab)||'m'}}catch(e){S={open:[],today:0,tab:'m'}}await dqLoad();rebuild()}
 setTimeout(init,400);
 let lu='';setInterval(()=>{const c=ctx(),k=(c.U&&c.U.uid||'')+(c.ISTEACHER?'T':'')+(c.DB?'D':'');if(k!==lu){lu=k;init()}},1500);
-window.PHBL1UI={CALC,init};
+window.PHBL1UI={CALC,init,setMode,state:()=>S};
 })();
 
 </script>
